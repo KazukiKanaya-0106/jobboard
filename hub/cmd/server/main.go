@@ -2,71 +2,43 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
-	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/kanaya/jobboard-hub/internal/config"
+	"github.com/kanaya/jobboard-hub/internal/database"
+	"github.com/kanaya/jobboard-hub/internal/router"
 )
 
 func main() {
 	ctx := context.Background()
 
-	// Database connection
-	dbHost := os.Getenv("DB_HOST")
-	dbPort := os.Getenv("DB_PORT")
-	dbUser := os.Getenv("DB_USER")
-	dbPassword := os.Getenv("DB_PASSWORD")
-	dbName := os.Getenv("DB_NAME")
+	cfg := config.Load()
 
-	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
-		dbUser, dbPassword, dbHost, dbPort, dbName)
-
-	pool, err := pgxpool.New(ctx, dsn)
+	db, err := database.New(ctx, &cfg.Database)
 	if err != nil {
-		log.Fatalf("Failed to create connection pool: %v", err)
+		log.Fatalf("Failed to connect to database: %v", err)
 	}
-	defer pool.Close()
-
-	// Test connection
-	if err := pool.Ping(ctx); err != nil {
-		log.Fatalf("Failed to ping database: %v", err)
-	}
-
+	defer db.Close()
 	log.Println("Successfully connected to database")
 
-	// Gin setup
-	r := gin.Default()
+	r := router.New(ctx, db)
 
-	r.GET("/health", func(c *gin.Context) {
-		// Check database connection
-		if err := pool.Ping(ctx); err != nil {
-			c.JSON(503, gin.H{
-				"status": "error",
-				"error":  "database unavailable",
-			})
-			return
-		}
-		c.JSON(200, gin.H{
-			"status": "ok",
-		})
-	})
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
-	r.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "Job Board API",
-		})
-	})
+	go func() {
+		<-quit
+		log.Println("Shutting down server...")
+		db.Close()
+		os.Exit(0)
+	}()
 
 	// Start server
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-
-	log.Printf("Starting server on port %s", port)
-	if err := r.Run(":" + port); err != nil {
+	log.Printf("Starting server on port %s", cfg.Server.Port)
+	if err := r.Run(":" + cfg.Server.Port); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }
