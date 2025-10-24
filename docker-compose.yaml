@@ -1,0 +1,68 @@
+services:
+
+  db:
+    image: postgres:16-alpine
+    container_name: jobboard-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      TZ: ${TZ}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  hub:
+    build:
+      context: ./hub
+      dockerfile: Dockerfile
+    container_name: jobboard-hub
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: ${POSTGRES_DB}
+      GIN_MODE: ${GIN_MODE}
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./hub:/app
+      - go_modules_hub:/go/pkg/mod
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+  cli:
+    build:
+      context: ./cli
+      dockerfile: Dockerfile
+    container_name: jobboard-cli
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: ${POSTGRES_DB}
+    volumes:
+      - ./cli:/app
+      - go_modules_cli:/go/pkg/mod
+    depends_on:
+      db:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+
+volumes:
+  postgres_data:
+  go_modules_hub:
+  go_modules_cli:
