@@ -17,9 +17,9 @@ func New(ctx context.Context, db *database.Database) *gin.Engine {
 	r.GET("/health", healthHandler.Check)
 	r.GET("/", healthHandler.Info)
 
-	v1 := r.Group("/api/v1")
+	api := r.Group("/api")
 	{
-		_ = v1 // TODO: Add API routes
+		cluster := api.Group("/clusters")
 	}
 
 	return r

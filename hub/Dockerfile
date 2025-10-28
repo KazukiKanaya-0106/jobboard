@@ -9,4 +9,6 @@ WORKDIR /app
 
 EXPOSE 8080
 
+RUN sqlc generate
+
 CMD ["air", "-c", ".air.toml"]
