@@ -11,27 +11,27 @@ import (
 
 const createNode = `-- name: CreateNode :one
 INSERT INTO nodes (
-  cluster_id, node_name, webhook_secret_hash
+  cluster_id, node_name, node_token_hash
 ) VALUES (
   $1, $2, $3
 )
-RETURNING id, cluster_id, node_name, webhook_secret_hash, current_job_id, created_at
+RETURNING id, cluster_id, node_name, node_token_hash, current_job_id, created_at
 `
 
 type CreateNodeParams struct {
-	ClusterID         string `json:"cluster_id"`
-	NodeName          string `json:"node_name"`
-	WebhookSecretHash string `json:"webhook_secret_hash"`
+	ClusterID     string `json:"cluster_id"`
+	NodeName      string `json:"node_name"`
+	NodeTokenHash string `json:"node_token_hash"`
 }
 
 func (q *Queries) CreateNode(ctx context.Context, arg CreateNodeParams) (Node, error) {
-	row := q.db.QueryRow(ctx, createNode, arg.ClusterID, arg.NodeName, arg.WebhookSecretHash)
+	row := q.db.QueryRow(ctx, createNode, arg.ClusterID, arg.NodeName, arg.NodeTokenHash)
 	var i Node
 	err := row.Scan(
 		&i.ID,
 		&i.ClusterID,
 		&i.NodeName,
-		&i.WebhookSecretHash,
+		&i.NodeTokenHash,
 		&i.CurrentJobID,
 		&i.CreatedAt,
 	)
@@ -56,21 +56,21 @@ func (q *Queries) DeleteNodeByCluster(ctx context.Context, arg DeleteNodeByClust
 	return result.RowsAffected(), nil
 }
 
-const getNodeByWebhookSecretHash = `-- name: GetNodeByWebhookSecretHash :one
-SELECT id, cluster_id, node_name, webhook_secret_hash, current_job_id, created_at
+const getNodeByNodeTokenHash = `-- name: GetNodeByNodeTokenHash :one
+SELECT id, cluster_id, node_name, node_token_hash, current_job_id, created_at
 FROM nodes
-WHERE webhook_secret_hash = $1
+WHERE node_token_hash = $1
 LIMIT 1
 `
 
-func (q *Queries) GetNodeByWebhookSecretHash(ctx context.Context, webhookSecretHash string) (Node, error) {
-	row := q.db.QueryRow(ctx, getNodeByWebhookSecretHash, webhookSecretHash)
+func (q *Queries) GetNodeByNodeTokenHash(ctx context.Context, nodeTokenHash string) (Node, error) {
+	row := q.db.QueryRow(ctx, getNodeByNodeTokenHash, nodeTokenHash)
 	var i Node
 	err := row.Scan(
 		&i.ID,
 		&i.ClusterID,
 		&i.NodeName,
-		&i.WebhookSecretHash,
+		&i.NodeTokenHash,
 		&i.CurrentJobID,
 		&i.CreatedAt,
 	)
@@ -78,7 +78,7 @@ func (q *Queries) GetNodeByWebhookSecretHash(ctx context.Context, webhookSecretH
 }
 
 const listNodesByCluster = `-- name: ListNodesByCluster :many
-SELECT id, cluster_id, node_name, webhook_secret_hash, current_job_id, created_at
+SELECT id, cluster_id, node_name, node_token_hash, current_job_id, created_at
 FROM nodes
 WHERE cluster_id = $1
 ORDER BY node_name ASC
@@ -97,7 +97,7 @@ func (q *Queries) ListNodesByCluster(ctx context.Context, clusterID string) ([]N
 			&i.ID,
 			&i.ClusterID,
 			&i.NodeName,
-			&i.WebhookSecretHash,
+			&i.NodeTokenHash,
 			&i.CurrentJobID,
 			&i.CreatedAt,
 		); err != nil {
@@ -115,7 +115,7 @@ const updateNodeCurrentJob = `-- name: UpdateNodeCurrentJob :one
 UPDATE nodes
 SET current_job_id = $2
 WHERE id = $1
-RETURNING id, cluster_id, node_name, webhook_secret_hash, current_job_id, created_at
+RETURNING id, cluster_id, node_name, node_token_hash, current_job_id, created_at
 `
 
 type UpdateNodeCurrentJobParams struct {
@@ -130,7 +130,7 @@ func (q *Queries) UpdateNodeCurrentJob(ctx context.Context, arg UpdateNodeCurren
 		&i.ID,
 		&i.ClusterID,
 		&i.NodeName,
-		&i.WebhookSecretHash,
+		&i.NodeTokenHash,
 		&i.CurrentJobID,
 		&i.CreatedAt,
 	)

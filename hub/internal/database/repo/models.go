@@ -26,10 +26,10 @@ type Job struct {
 }
 
 type Node struct {
-	ID                int64              `json:"id"`
-	ClusterID         string             `json:"cluster_id"`
-	NodeName          string             `json:"node_name"`
-	WebhookSecretHash string             `json:"webhook_secret_hash"`
-	CurrentJobID      *int64             `json:"current_job_id"`
-	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	ID            int64              `json:"id"`
+	ClusterID     string             `json:"cluster_id"`
+	NodeName      string             `json:"node_name"`
+	NodeTokenHash string             `json:"node_token_hash"`
+	CurrentJobID  *int64             `json:"current_job_id"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
 }

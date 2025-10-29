@@ -29,7 +29,7 @@ type nodeResponse struct {
 	NodeName     string    `json:"node_name"`
 	CurrentJobID *int64    `json:"current_job_id"`
 	CreatedAt    time.Time `json:"created_at"`
-	Webhook      string    `json:"webhook,omitempty"`
+	NodeToken    string    `json:"node_token,omitempty"`
 }
 
 func nodeToResponse(node repo.Node) nodeResponse {
@@ -65,7 +65,7 @@ type createNodeRequest struct {
 
 type createNodeResponse struct {
 	nodeResponse
-	Webhook string `json:"webhook"`
+	NodeToken string `json:"node_token"`
 }
 
 func (h *NodeHandler) Create(c *gin.Context) {
@@ -76,16 +76,16 @@ func (h *NodeHandler) Create(c *gin.Context) {
 	}
 
 	clusterID := c.GetString(middleware.ClusterIDContextKey)
-	webhookSecret, err := generateWebhookSecret()
+	nodeToken, err := generateNodeToken()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate webhook secret"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate node token"})
 		return
 	}
 
 	node, err := h.queries.CreateNode(c.Request.Context(), repo.CreateNodeParams{
-		ClusterID:         clusterID,
-		NodeName:          req.NodeName,
-		WebhookSecretHash: hashWebhookSecret(webhookSecret),
+		ClusterID:     clusterID,
+		NodeName:      req.NodeName,
+		NodeTokenHash: hashNodeToken(nodeToken),
 	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create node"})
@@ -94,7 +94,7 @@ func (h *NodeHandler) Create(c *gin.Context) {
 
 	c.JSON(http.StatusOK, createNodeResponse{
 		nodeResponse: nodeToResponse(node),
-		Webhook:      webhookSecret,
+		NodeToken:    nodeToken,
 	})
 }
 
@@ -124,7 +124,7 @@ func (h *NodeHandler) Delete(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
-func generateWebhookSecret() (string, error) {
+func generateNodeToken() (string, error) {
 	buf := make([]byte, 32)
 	if _, err := rand.Read(buf); err != nil {
 		return "", err
@@ -132,7 +132,7 @@ func generateWebhookSecret() (string, error) {
 	return base64.RawURLEncoding.EncodeToString(buf), nil
 }
 
-func hashWebhookSecret(webhookSecret string) string {
-	sum := sha256.Sum256([]byte(webhookSecret))
+func hashNodeToken(nodeToken string) string {
+	sum := sha256.Sum256([]byte(nodeToken))
 	return hex.EncodeToString(sum[:])
 }

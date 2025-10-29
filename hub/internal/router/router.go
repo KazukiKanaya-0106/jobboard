@@ -24,6 +24,7 @@ func New(ctx context.Context, db *database.Database, jwtSecret []byte, tokenTTL 
 	clusterHandler := handler.NewClusterHandler(queries)
 	nodeHandler := handler.NewNodeHandler(queries)
 	jobHandler := handler.NewJobHandler(queries)
+	jobTriggerHandler := handler.NewJobTriggerHandler(queries)
 
 	router.GET("/health", healthHandler.Check)
 	router.GET("/", healthHandler.Info)
@@ -32,6 +33,7 @@ func New(ctx context.Context, db *database.Database, jwtSecret []byte, tokenTTL 
 	{
 		auth := api.Group("/auth")
 		{
+			// 認証
 			auth.POST("/register", authHandler.Register)
 			auth.POST("/login", authHandler.Login)
 		}
@@ -53,8 +55,11 @@ func New(ctx context.Context, db *database.Database, jwtSecret []byte, tokenTTL 
 			protected.GET("/nodes/:node_id/jobs", jobHandler.ListByNode)
 		}
 
+		jobTrigger := api.Group("/job-trigger")
 		{
-
+			// ジョブトリガー
+			jobTrigger.POST("/start", jobTriggerHandler.StartJob)
+			jobTrigger.POST("/finish", jobTriggerHandler.FinishJob)
 		}
 	}
 
