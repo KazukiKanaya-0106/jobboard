@@ -17,17 +17,14 @@ func New(ctx context.Context, db *database.Database, jwtSecret []byte, tokenTTL 
 
 	queries := repo.New(db.Pool)
 
-	// 共通ハンドラ
 	healthHandler := handler.NewHealthHandler(ctx, db)
 	authHandler := handler.NewAuthHandler(queries, jwtSecret, tokenTTL)
 	authMiddleware := middleware.NewAuthMiddleware(queries, jwtSecret)
 
-	// クラスタ／ノード／ジョブのハンドラ
 	clusterHandler := handler.NewClusterHandler(queries)
 	nodeHandler := handler.NewNodeHandler(queries)
 	jobHandler := handler.NewJobHandler(queries)
 
-	// ヘルスチェック
 	r.GET("/health", healthHandler.Check)
 	r.GET("/", healthHandler.Info)
 
@@ -39,17 +36,15 @@ func New(ctx context.Context, db *database.Database, jwtSecret []byte, tokenTTL 
 			auth.POST("/login", authHandler.Login)
 		}
 
-		// ここから認証必須
 		protected := api.Group("/")
 		protected.Use(authMiddleware.RequireAuth())
 		{
-			// クラスタ情報
+			// クラスタ
 			protected.GET("/clusters/me", clusterHandler.Me)
 
 			// ノード
 			protected.GET("/nodes", nodeHandler.List)
 			protected.POST("/nodes", nodeHandler.Create)
-			protected.POST("/nodes/:node_id/current_job", nodeHandler.UpdateCurrentJob)
 			protected.DELETE("/nodes/:node_id", nodeHandler.Delete)
 
 			// ジョブ

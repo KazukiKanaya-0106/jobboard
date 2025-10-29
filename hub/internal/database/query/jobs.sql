@@ -1,4 +1,4 @@
--- name: GetJobByClusterAndJobId :one
+-- name: GetJobByClusterAndJobID :one
 SELECT * FROM jobs
 WHERE cluster_id = $1 AND id = $2 LIMIT 1;
 

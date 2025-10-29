@@ -32,9 +32,9 @@ type jobResponse struct {
 }
 
 func (h *JobHandler) List(c *gin.Context) {
-	clusterId := c.GetString(middleware.ClusterIdContextKey)
+	clusterID := c.GetString(middleware.ClusterIDContextKey)
 
-	jobs, err := h.queries.ListJobsByCluster(c.Request.Context(), clusterId)
+	jobs, err := h.queries.ListJobsByCluster(c.Request.Context(), clusterID)
 	if err != nil {
 		c.JSON(500, gin.H{"error": "failed to list jobs"})
 		return
@@ -49,16 +49,16 @@ func (h *JobHandler) List(c *gin.Context) {
 }
 
 func (h *JobHandler) Get(c *gin.Context) {
-	clusterId := c.GetString(middleware.ClusterIdContextKey)
-	jobId, err := strconv.ParseInt(c.Param("job_id"), 10, 64)
+	clusterID := c.GetString(middleware.ClusterIDContextKey)
+	jobID, err := strconv.ParseInt(c.Param("job_id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid job id"})
 		return
 	}
 
-	job, err := h.queries.GetJobByClusterAndJobId(c.Request.Context(), repo.GetJobByClusterAndJobIdParams{
-		ClusterID: clusterId,
-		ID:        jobId,
+	job, err := h.queries.GetJobByClusterAndJobID(c.Request.Context(), repo.GetJobByClusterAndJobIDParams{
+		ClusterID: clusterID,
+		ID:        jobID,
 	})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -73,14 +73,14 @@ func (h *JobHandler) Get(c *gin.Context) {
 }
 
 func (h *JobHandler) ListByNode(c *gin.Context) {
-	clusterId := c.GetString(middleware.ClusterIdContextKey)
-	nodeId, err := strconv.ParseInt(c.Param("node_id"), 10, 64)
+	clusterID := c.GetString(middleware.ClusterIDContextKey)
+	nodeID, err := strconv.ParseInt(c.Param("node_id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid node id"})
 		return
 	}
 
-	nodes, err := h.queries.ListNodesByCluster(c.Request.Context(), clusterId)
+	nodes, err := h.queries.ListNodesByCluster(c.Request.Context(), clusterID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load nodes"})
 		return
@@ -88,7 +88,7 @@ func (h *JobHandler) ListByNode(c *gin.Context) {
 
 	owned := false
 	for _, node := range nodes {
-		if node.ID == nodeId {
+		if node.ID == nodeID {
 			owned = true
 			break
 		}
@@ -99,7 +99,7 @@ func (h *JobHandler) ListByNode(c *gin.Context) {
 		return
 	}
 
-	jobs, err := h.queries.ListJobsByNode(c.Request.Context(), nodeId)
+	jobs, err := h.queries.ListJobsByNode(c.Request.Context(), nodeID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list jobs"})
 		return

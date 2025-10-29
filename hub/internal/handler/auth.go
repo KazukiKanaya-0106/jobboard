@@ -29,12 +29,12 @@ func NewAuthHandler(queries repo.Querier, jwtSecret []byte, tokenTTL time.Durati
 }
 
 type authRequest struct {
-	ClusterId string `json:"cluster_id" binding:"required"`
+	ClusterID string `json:"cluster_id" binding:"required"`
 	Password  string `json:"password" binding:"required"`
 }
 
 type authResponse struct {
-	ClusterId string `json:"cluster_id"`
+	ClusterID string `json:"cluster_id"`
 	Token     string `json:"token"`
 	ExpiresAt int64  `json:"expires_at"`
 }
@@ -46,7 +46,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	cluster, err := h.queries.GetCluster(c.Request.Context(), req.ClusterId)
+	cluster, err := h.queries.GetCluster(c.Request.Context(), req.ClusterID)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
 		return
@@ -57,7 +57,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.issueTokenResponse(req.ClusterId)
+	resp, err := h.issueTokenResponse(req.ClusterID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to issue token"})
 		return
@@ -80,7 +80,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 
 	_, err = h.queries.CreateCluster(c.Request.Context(), repo.CreateClusterParams{
-		ID:           req.ClusterId,
+		ID:           req.ClusterID,
 		PasswordHash: string(hashed),
 	})
 	if err != nil {
@@ -93,7 +93,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.issueTokenResponse(req.ClusterId)
+	resp, err := h.issueTokenResponse(req.ClusterID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to issue token"})
 		return
@@ -102,10 +102,10 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func (h *AuthHandler) issueTokenResponse(clusterId string) (authResponse, error) {
+func (h *AuthHandler) issueTokenResponse(clusterID string) (authResponse, error) {
 	now := time.Now()
 	claims := middleware.AuthClaims{
-		ClusterId: clusterId,
+		ClusterID: clusterID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(now.Add(h.tokenTTL)),
@@ -118,7 +118,7 @@ func (h *AuthHandler) issueTokenResponse(clusterId string) (authResponse, error)
 		return authResponse{}, err
 	}
 	return authResponse{
-		ClusterId: clusterId,
+		ClusterID: clusterID,
 		Token:     signed,
 		ExpiresAt: claims.ExpiresAt.Unix(),
 	}, nil

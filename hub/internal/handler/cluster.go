@@ -20,13 +20,13 @@ func NewClusterHandler(queries repo.Querier) *ClusterHandler {
 }
 
 type clusterResponse struct {
-	Id        string    `json:"cluster_id"`
+	ID        string    `json:"cluster_id"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
 func (h *ClusterHandler) Me(c *gin.Context) {
-	clusterId := c.GetString(middleware.ClusterIdContextKey)
-	cluster, err := h.queries.GetCluster(c.Request.Context(), clusterId)
+	clusterID := c.GetString(middleware.ClusterIDContextKey)
+	cluster, err := h.queries.GetCluster(c.Request.Context(), clusterID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load cluster"})
 		return
@@ -38,7 +38,7 @@ func (h *ClusterHandler) Me(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, clusterResponse{
-		Id:        cluster.ID,
+		ID:        cluster.ID,
 		CreatedAt: createdAt,
 	})
 }

@@ -15,7 +15,7 @@ type Querier interface {
 	DeleteCluster(ctx context.Context, id string) error
 	DeleteNodeByCluster(ctx context.Context, arg DeleteNodeByClusterParams) (int64, error)
 	GetCluster(ctx context.Context, id string) (Cluster, error)
-	GetJobByClusterAndJobId(ctx context.Context, arg GetJobByClusterAndJobIdParams) (Job, error)
+	GetJobByClusterAndJobID(ctx context.Context, arg GetJobByClusterAndJobIDParams) (Job, error)
 	GetNodeByWebhookSecretHash(ctx context.Context, webhookSecretHash string) (Node, error)
 	ListJobsByCluster(ctx context.Context, clusterID string) ([]Job, error)
 	ListJobsByNode(ctx context.Context, nodeID int64) ([]Job, error)

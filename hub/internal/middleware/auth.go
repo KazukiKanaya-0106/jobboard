@@ -9,14 +9,14 @@ import (
 	"github.com/kanaya/jobboard-hub/internal/database/repo"
 )
 
-const ClusterIdContextKey = "cluster_id"
+const ClusterIDContextKey = "cluster_id"
 
 type AuthMiddleware struct {
 	queries   repo.Querier
 	jwtSecret []byte
 }
 type AuthClaims struct {
-	ClusterId string `json:"cluster_id"`
+	ClusterID string `json:"cluster_id"`
 	jwt.RegisteredClaims
 }
 
@@ -47,7 +47,7 @@ func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 			return
 		}
 
-		c.Set(ClusterIdContextKey, claims.ClusterId)
+		c.Set(ClusterIDContextKey, claims.ClusterID)
 		c.Next()
 	}
 }

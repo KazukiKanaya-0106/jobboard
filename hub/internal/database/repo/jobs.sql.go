@@ -40,18 +40,18 @@ func (q *Queries) CreateJob(ctx context.Context, arg CreateJobParams) (Job, erro
 	return i, err
 }
 
-const getJobByClusterAndJobId = `-- name: GetJobByClusterAndJobId :one
+const getJobByClusterAndJobID = `-- name: GetJobByClusterAndJobID :one
 SELECT id, cluster_id, node_id, started_at, finished_at, status, tag FROM jobs
 WHERE cluster_id = $1 AND id = $2 LIMIT 1
 `
 
-type GetJobByClusterAndJobIdParams struct {
+type GetJobByClusterAndJobIDParams struct {
 	ClusterID string `json:"cluster_id"`
 	ID        int64  `json:"id"`
 }
 
-func (q *Queries) GetJobByClusterAndJobId(ctx context.Context, arg GetJobByClusterAndJobIdParams) (Job, error) {
-	row := q.db.QueryRow(ctx, getJobByClusterAndJobId, arg.ClusterID, arg.ID)
+func (q *Queries) GetJobByClusterAndJobID(ctx context.Context, arg GetJobByClusterAndJobIDParams) (Job, error) {
+	row := q.db.QueryRow(ctx, getJobByClusterAndJobID, arg.ClusterID, arg.ID)
 	var i Job
 	err := row.Scan(
 		&i.ID,

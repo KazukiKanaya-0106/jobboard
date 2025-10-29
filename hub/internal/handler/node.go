@@ -24,9 +24,9 @@ func NewNodeHandler(queries repo.Querier) *NodeHandler {
 }
 
 type nodeResponse struct {
-	Id           int64     `json:"id"`
+	ID           int64     `json:"id"`
 	NodeName     string    `json:"node_name"`
-	CurrentJobId *int64    `json:"current_job_id"`
+	CurrentJobID *int64    `json:"current_job_id"`
 	CreatedAt    time.Time `json:"created_at"`
 }
 
@@ -36,16 +36,16 @@ func nodeToResponse(node repo.Node) nodeResponse {
 		createdAt = node.CreatedAt.Time
 	}
 	return nodeResponse{
-		Id:           node.ID,
+		ID:           node.ID,
 		NodeName:     node.NodeName,
-		CurrentJobId: node.CurrentJobID,
+		CurrentJobID: node.CurrentJobID,
 		CreatedAt:    createdAt,
 	}
 }
 
 func (h *NodeHandler) List(c *gin.Context) {
-	clusterId := c.GetString(middleware.ClusterIdContextKey)
-	nodes, err := h.queries.ListNodesByCluster(c.Request.Context(), clusterId)
+	clusterID := c.GetString(middleware.ClusterIDContextKey)
+	nodes, err := h.queries.ListNodesByCluster(c.Request.Context(), clusterID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list nodes"})
 		return
@@ -68,7 +68,7 @@ func (h *NodeHandler) Create(c *gin.Context) {
 		return
 	}
 
-	clusterId := c.GetString(middleware.ClusterIdContextKey)
+	clusterID := c.GetString(middleware.ClusterIDContextKey)
 	webhookSecret, err := generateWebhookSecret()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate webhook secret"})
@@ -82,7 +82,7 @@ func (h *NodeHandler) Create(c *gin.Context) {
 	}
 
 	node, err := h.queries.CreateNode(c.Request.Context(), repo.CreateNodeParams{
-		ClusterID:         clusterId,
+		ClusterID:         clusterID,
 		NodeName:          req.NodeName,
 		WebhookSecretHash: string(secretHash),
 	})
@@ -95,16 +95,16 @@ func (h *NodeHandler) Create(c *gin.Context) {
 }
 
 func (h *NodeHandler) Delete(c *gin.Context) {
-	clusterId := c.GetString(middleware.ClusterIdContextKey)
-	nodeId, err := strconv.ParseInt(c.Param("node_id"), 10, 64)
+	clusterID := c.GetString(middleware.ClusterIDContextKey)
+	nodeID, err := strconv.ParseInt(c.Param("node_id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid node id"})
 		return
 	}
 
 	rows, err := h.queries.DeleteNodeByCluster(c.Request.Context(), repo.DeleteNodeByClusterParams{
-		ID:        nodeId,
-		ClusterID: clusterId,
+		ID:        nodeID,
+		ClusterID: clusterID,
 	})
 
 	if err != nil {
