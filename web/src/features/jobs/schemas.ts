@@ -1,12 +1,12 @@
-import { z } from 'zod'
+import { z } from "zod";
 
 const intervalObjectSchema = z
   .object({
     Microseconds: z.number(),
   })
-  .passthrough()
+  .passthrough();
 
-const durationSchema = z.union([z.number(), z.string(), intervalObjectSchema, z.null(), z.undefined()])
+const durationSchema = z.union([z.number(), z.string(), intervalObjectSchema, z.null(), z.undefined()]);
 
 export const jobSchema = z.object({
   id: z.number(),
@@ -17,6 +17,6 @@ export const jobSchema = z.object({
   status: z.string(),
   duration_hours: durationSchema.optional(),
   tag: z.string().nullable(),
-})
+});
 
-export type JobDto = z.infer<typeof jobSchema>
+export type JobDto = z.infer<typeof jobSchema>;

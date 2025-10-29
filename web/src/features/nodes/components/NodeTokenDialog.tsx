@@ -1,4 +1,4 @@
-import ContentCopyIcon from '@mui/icons-material/ContentCopy'
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import {
   Dialog,
   DialogTitle,
@@ -11,27 +11,27 @@ import {
   Tooltip,
   Snackbar,
   Alert,
-} from '@mui/material'
-import { useState } from 'react'
+} from "@mui/material";
+import { useState } from "react";
 
 type NodeTokenDialogProps = {
-  token: string | null
-  onClose: () => void
-}
+  token: string | null;
+  onClose: () => void;
+};
 
 export default function NodeTokenDialog({ token, onClose }: NodeTokenDialogProps) {
-  const [copied, setCopied] = useState(false)
+  const [copied, setCopied] = useState(false);
 
-  if (!token) return null
+  if (!token) return null;
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(token)
-      setCopied(true)
+      await navigator.clipboard.writeText(token);
+      setCopied(true);
     } catch {
-      setCopied(false)
+      setCopied(false);
     }
-  }
+  };
 
   return (
     <>
@@ -66,12 +66,12 @@ export default function NodeTokenDialog({ token, onClose }: NodeTokenDialogProps
         open={copied}
         autoHideDuration={2000}
         onClose={() => setCopied(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       >
         <Alert severity="success" variant="filled">
           NodeToken をコピーしました
         </Alert>
       </Snackbar>
     </>
-  )
+  );
 }

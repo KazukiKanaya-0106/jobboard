@@ -1,37 +1,37 @@
-import { z } from 'zod'
-import { apiRequest } from '../../lib/api-client'
-import type { StoredAuth } from '../../lib/storage'
-import type { JobDto } from './schemas'
-import { jobSchema } from './schemas'
+import { z } from "zod";
+import { apiRequest } from "../../lib/api-client";
+import type { StoredAuth } from "../../lib/storage";
+import type { JobDto } from "./schemas";
+import { jobSchema } from "./schemas";
 
 export type Job = {
-  id: number
-  nodeId: number
-  status: string
-  startedAt: Date | null
-  finishedAt: Date | null
-  durationHours: number | null
-  tag: string | null
-}
+  id: number;
+  nodeId: number;
+  status: string;
+  startedAt: Date | null;
+  finishedAt: Date | null;
+  durationHours: number | null;
+  tag: string | null;
+};
 
-const jobsArraySchema = z.array(jobSchema)
+const jobsArraySchema = z.array(jobSchema);
 
-function parseDuration(value: JobDto['duration_hours']): number | null {
-  if (value === null || value === undefined) return null
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    return value
+function parseDuration(value: JobDto["duration_hours"]): number | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
   }
-  if (typeof value === 'string') {
-    const numeric = Number(value)
-    return Number.isFinite(numeric) ? numeric : null
+  if (typeof value === "string") {
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? numeric : null;
   }
-  if (typeof value === 'object' && value && 'Microseconds' in value) {
-    const micro = (value as { Microseconds: number }).Microseconds
-    if (typeof micro === 'number' && Number.isFinite(micro)) {
-      return micro / (1000 * 1000) / 3600
+  if (typeof value === "object" && value && "Microseconds" in value) {
+    const micro = (value as { Microseconds: number }).Microseconds;
+    if (typeof micro === "number" && Number.isFinite(micro)) {
+      return micro / (1000 * 1000) / 3600;
     }
   }
-  return null
+  return null;
 }
 
 function mapJob(dto: JobDto): Job {
@@ -43,14 +43,14 @@ function mapJob(dto: JobDto): Job {
     finishedAt: dto.finished_at,
     durationHours: parseDuration(dto.duration_hours),
     tag: dto.tag ?? null,
-  }
+  };
 }
 
 export async function fetchJobs(auth: StoredAuth): Promise<Job[]> {
   const dto = await apiRequest(`/api/jobs`, {
-    method: 'GET',
+    method: "GET",
     token: auth.token,
-  })
-  const jobs = jobsArraySchema.parse(dto)
-  return jobs.map(mapJob)
+  });
+  const jobs = jobsArraySchema.parse(dto);
+  return jobs.map(mapJob);
 }

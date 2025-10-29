@@ -1,13 +1,13 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
-import { BrowserRouter } from 'react-router-dom'
-import AuthLayout from '../../layouts/AuthLayout'
-import DashboardLayout from '../../layouts/DashboardLayout'
-import LoginPage from '../../features/auth/pages/LoginPage'
-import RegisterPage from '../../features/auth/pages/RegisterPage'
-import NodesPage from '../../features/nodes/pages/NodesPage'
-import JobsPage from '../../features/jobs/pages/JobsPage'
-import ProtectedRoute from '../../features/auth/components/ProtectedRoute'
-import RedirectIfAuthenticated from '../../features/auth/components/RedirectIfAuthenticated'
+import { Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter } from "react-router-dom";
+import AuthLayout from "../../layouts/AuthLayout";
+import DashboardLayout from "../../layouts/DashboardLayout";
+import LoginPage from "../../features/auth/pages/LoginPage";
+import RegisterPage from "../../features/auth/pages/RegisterPage";
+import NodesPage from "../../features/nodes/pages/NodesPage";
+import JobsPage from "../../features/jobs/pages/JobsPage";
+import ProtectedRoute from "../../features/auth/components/ProtectedRoute";
+import RedirectIfAuthenticated from "../../features/auth/components/RedirectIfAuthenticated";
 
 export default function AppRoutes() {
   return (
@@ -42,5 +42,5 @@ export default function AppRoutes() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
-  )
+  );
 }

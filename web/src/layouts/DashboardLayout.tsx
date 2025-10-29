@@ -1,6 +1,6 @@
-import MenuIcon from '@mui/icons-material/Menu'
-import WorkspacesIcon from '@mui/icons-material/Workspaces'
-import ListAltIcon from '@mui/icons-material/ListAlt'
+import MenuIcon from "@mui/icons-material/Menu";
+import WorkspacesIcon from "@mui/icons-material/Workspaces";
+import ListAltIcon from "@mui/icons-material/ListAlt";
 import {
   AppBar,
   Box,
@@ -16,65 +16,61 @@ import {
   Typography,
   Button,
   Stack,
-} from '@mui/material'
-import { useState } from 'react'
-import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { useAuth } from '../features/auth/AuthContext'
+} from "@mui/material";
+import { useState } from "react";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../features/auth/AuthContext";
 
-const drawerWidth = 240
+const drawerWidth = 240;
 
 type NavItem = {
-  label: string
-  path: string
-  icon: React.ReactNode
-}
+  label: string;
+  path: string;
+  icon: React.ReactNode;
+};
 
 const navItems: NavItem[] = [
-  { label: 'ノード', path: '/nodes', icon: <WorkspacesIcon /> },
-  { label: 'ジョブ', path: '/jobs', icon: <ListAltIcon /> },
-]
+  { label: "ノード", path: "/nodes", icon: <WorkspacesIcon /> },
+  { label: "ジョブ", path: "/jobs", icon: <ListAltIcon /> },
+];
 
 export default function DashboardLayout() {
-  const { auth, logout } = useAuth()
-  const navigate = useNavigate()
-  const location = useLocation()
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const { auth, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleDrawerToggle = () => {
-    setMobileOpen((prev) => !prev)
-  }
+    setMobileOpen((prev) => !prev);
+  };
 
   const handleNavigate = (path: string) => {
-    navigate(path)
-    setMobileOpen(false)
-  }
+    navigate(path);
+    setMobileOpen(false);
+  };
 
   const drawer = (
-    <Box sx={{ textAlign: 'center', height: '100%' }}>
+    <Box sx={{ textAlign: "center", height: "100%" }}>
       <Typography variant="h6" sx={{ my: 2 }}>
         Jobboard Hub
       </Typography>
       <Divider />
       <List>
         {navItems.map((item) => {
-          const selected = location.pathname.startsWith(item.path)
+          const selected = location.pathname.startsWith(item.path);
           return (
-            <ListItemButton
-              key={item.path}
-              selected={selected}
-              onClick={() => handleNavigate(item.path)}
-            >
+            <ListItemButton key={item.path} selected={selected} onClick={() => handleNavigate(item.path)}>
               <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.label} />
             </ListItemButton>
-          )
+          );
         })}
       </List>
     </Box>
-  )
+  );
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: "flex" }}>
       <CssBaseline />
       <AppBar
         position="fixed"
@@ -83,13 +79,13 @@ export default function DashboardLayout() {
           ml: { sm: `${drawerWidth}px` },
         }}
       >
-        <Toolbar sx={{ justifyContent: 'space-between' }}>
+        <Toolbar sx={{ justifyContent: "space-between" }}>
           <Stack direction="row" spacing={2} alignItems="center">
             <IconButton
               color="inherit"
               edge="start"
               onClick={handleDrawerToggle}
-              sx={{ mr: 2, display: { sm: 'none' } }}
+              sx={{ mr: 2, display: { sm: "none" } }}
             >
               <MenuIcon />
             </IconButton>
@@ -105,8 +101,8 @@ export default function DashboardLayout() {
               variant="outlined"
               color="inherit"
               onClick={() => {
-                logout()
-                navigate('/auth/login', { replace: true })
+                logout();
+                navigate("/auth/login", { replace: true });
               }}
             >
               ログアウト
@@ -114,11 +110,7 @@ export default function DashboardLayout() {
           </Stack>
         </Toolbar>
       </AppBar>
-      <Box
-        component="nav"
-        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
-        aria-label="navigation"
-      >
+      <Box component="nav" sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }} aria-label="navigation">
         <Drawer
           variant="temporary"
           open={mobileOpen}
@@ -127,8 +119,8 @@ export default function DashboardLayout() {
             keepMounted: true,
           }}
           sx={{
-            display: { xs: 'block', sm: 'none' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            display: { xs: "block", sm: "none" },
+            "& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth },
           }}
         >
           {drawer}
@@ -136,8 +128,8 @@ export default function DashboardLayout() {
         <Drawer
           variant="permanent"
           sx={{
-            display: { xs: 'none', sm: 'block' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            display: { xs: "none", sm: "block" },
+            "& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth },
           }}
           open
         >
@@ -150,7 +142,7 @@ export default function DashboardLayout() {
           flexGrow: 1,
           p: 3,
           width: { sm: `calc(100% - ${drawerWidth}px)` },
-          minHeight: '100vh',
+          minHeight: "100vh",
           backgroundColor: (theme) => theme.palette.grey[100],
         }}
       >
@@ -158,5 +150,5 @@ export default function DashboardLayout() {
         <Outlet />
       </Box>
     </Box>
-  )
+  );
 }

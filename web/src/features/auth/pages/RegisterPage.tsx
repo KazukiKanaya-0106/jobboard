@@ -1,27 +1,27 @@
-import { useMutation } from '@tanstack/react-query'
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import AuthForm from '../components/AuthForm'
-import { register } from '../api'
-import type { AuthCredentials } from '../schemas'
-import { useAuth } from '../AuthContext'
+import { useMutation } from "@tanstack/react-query";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import AuthForm from "../components/AuthForm";
+import { register } from "../api";
+import type { AuthCredentials } from "../schemas";
+import { useAuth } from "../AuthContext";
 
 export default function RegisterPage() {
-  const navigate = useNavigate()
-  const { setAuth } = useAuth()
-  const [apiError, setApiError] = useState<string | null>(null)
+  const navigate = useNavigate();
+  const { setAuth } = useAuth();
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const mutation = useMutation({
     mutationFn: (values: AuthCredentials) => register(values),
     onSuccess: (storedAuth) => {
-      setApiError(null)
-      setAuth(storedAuth)
-      navigate('/', { replace: true })
+      setApiError(null);
+      setAuth(storedAuth);
+      navigate("/", { replace: true });
     },
     onError: (error: unknown) => {
-      setApiError(error instanceof Error ? error.message : '登録に失敗しました')
+      setApiError(error instanceof Error ? error.message : "登録に失敗しました");
     },
-  })
+  });
 
   return (
     <AuthForm
@@ -30,5 +30,5 @@ export default function RegisterPage() {
       apiError={apiError}
       onSubmit={(values) => mutation.mutate(values)}
     />
-  )
+  );
 }

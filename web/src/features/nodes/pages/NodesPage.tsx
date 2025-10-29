@@ -1,6 +1,6 @@
-import AddIcon from '@mui/icons-material/Add'
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
-import RefreshIcon from '@mui/icons-material/Refresh'
+import AddIcon from "@mui/icons-material/Add";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import RefreshIcon from "@mui/icons-material/Refresh";
 import {
   Alert,
   Box,
@@ -17,75 +17,82 @@ import {
   Toolbar,
   Tooltip,
   Typography,
-} from '@mui/material'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
-import { useAuth } from '../../auth/AuthContext'
-import NodeCreateDialog from '../components/NodeCreateDialog'
-import NodeDeleteDialog from '../components/NodeDeleteDialog'
-import NodeTokenDialog from '../components/NodeTokenDialog'
-import { createNode, deleteNode, fetchNodes, type Node } from '../api'
-import type { CreateNodeRequest } from '../schemas'
+} from "@mui/material";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { useAuth } from "../../auth/AuthContext";
+import NodeCreateDialog from "../components/NodeCreateDialog";
+import NodeDeleteDialog from "../components/NodeDeleteDialog";
+import NodeTokenDialog from "../components/NodeTokenDialog";
+import { createNode, deleteNode, fetchNodes, type Node } from "../api";
+import type { CreateNodeRequest } from "../schemas";
 
 export default function NodesPage() {
-  const { auth } = useAuth()
-  const queryClient = useQueryClient()
-  const [isCreateOpen, setIsCreateOpen] = useState(false)
-  const [createdToken, setCreatedToken] = useState<string | null>(null)
-  const [createError, setCreateError] = useState<string | null>(null)
-  const [nodeToDelete, setNodeToDelete] = useState<Node | null>(null)
-  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const { auth } = useAuth();
+  const queryClient = useQueryClient();
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [createdToken, setCreatedToken] = useState<string | null>(null);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [nodeToDelete, setNodeToDelete] = useState<Node | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const requireAuth = () => {
+    if (!auth) {
+      throw new Error("Authentication is required to manage nodes");
+    }
+    return auth;
+  };
 
   const nodesQuery = useQuery({
-    queryKey: ['nodes'],
-    queryFn: () => fetchNodes(auth!),
+    queryKey: ["nodes"],
+    queryFn: () => fetchNodes(requireAuth()),
     enabled: Boolean(auth?.token),
-  })
+  });
 
   const createMutation = useMutation({
-    mutationFn: (input: CreateNodeRequest) => createNode(auth!, input),
+    mutationFn: (input: CreateNodeRequest) => createNode(requireAuth(), input),
     onSuccess: (result) => {
-      setIsCreateOpen(false)
+      setIsCreateOpen(false);
       if (result.token) {
-        setCreatedToken(result.token)
+        setCreatedToken(result.token);
       }
-      queryClient.invalidateQueries({ queryKey: ['nodes'] })
+      queryClient.invalidateQueries({ queryKey: ["nodes"] });
     },
     onError: (error: unknown) => {
-      setCreateError(error instanceof Error ? error.message : 'ノードの作成に失敗しました')
+      setCreateError(error instanceof Error ? error.message : "ノードの作成に失敗しました");
     },
-  })
+  });
 
   const deleteMutation = useMutation({
-    mutationFn: (nodeId: number) => deleteNode(auth!, nodeId),
+    mutationFn: (nodeId: number) => deleteNode(requireAuth(), nodeId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['nodes'] })
-      setNodeToDelete(null)
+      queryClient.invalidateQueries({ queryKey: ["nodes"] });
+      setNodeToDelete(null);
     },
     onError: (error: unknown) => {
-      setDeleteError(error instanceof Error ? error.message : 'ノードの削除に失敗しました')
+      setDeleteError(error instanceof Error ? error.message : "ノードの削除に失敗しました");
     },
-  })
+  });
 
   const handleCreate = async (input: CreateNodeRequest) => {
-    setCreateError(null)
-    await createMutation.mutateAsync(input)
-  }
+    setCreateError(null);
+    await createMutation.mutateAsync(input);
+  };
 
   const handleRefresh = () => {
-    nodesQuery.refetch()
-  }
+    nodesQuery.refetch();
+  };
 
   const handleDeleteConfirm = async () => {
-    if (!nodeToDelete) return
-    setDeleteError(null)
-    await deleteMutation.mutateAsync(nodeToDelete.id)
-  }
+    if (!nodeToDelete) return;
+    setDeleteError(null);
+    await deleteMutation.mutateAsync(nodeToDelete.id);
+  };
 
   return (
     <Stack spacing={3}>
       <Paper elevation={0} sx={{ p: 3 }}>
-        <Toolbar disableGutters sx={{ justifyContent: 'space-between', mb: 2 }}>
+        <Toolbar disableGutters sx={{ justifyContent: "space-between", mb: 2 }}>
           <Typography variant="h5">ノード一覧</Typography>
           <Stack direction="row" spacing={2}>
             <IconButton onClick={handleRefresh} disabled={nodesQuery.isFetching}>
@@ -98,7 +105,7 @@ export default function NodesPage() {
         </Toolbar>
 
         {nodesQuery.isLoading ? (
-          <Box sx={{ py: 8, textAlign: 'center' }}>
+          <Box sx={{ py: 8, textAlign: "center" }}>
             <CircularProgress />
           </Box>
         ) : nodesQuery.isError ? (
@@ -122,7 +129,7 @@ export default function NodesPage() {
                   <TableRow key={node.id} hover>
                     <TableCell>{node.id}</TableCell>
                     <TableCell>{node.nodeName}</TableCell>
-                    <TableCell>{node.currentJobId ?? 'なし'}</TableCell>
+                    <TableCell>{node.currentJobId ?? "なし"}</TableCell>
                     <TableCell>{node.createdAt.toLocaleString()}</TableCell>
                     <TableCell align="right">
                       <Tooltip title="ノードを削除">
@@ -130,8 +137,8 @@ export default function NodesPage() {
                           <IconButton
                             color="error"
                             onClick={() => {
-                              setNodeToDelete(node)
-                              setDeleteError(null)
+                              setNodeToDelete(node);
+                              setDeleteError(null);
                             }}
                             disabled={deleteMutation.isPending && nodeToDelete?.id === node.id}
                           >
@@ -145,7 +152,7 @@ export default function NodesPage() {
               ) : (
                 <TableRow>
                   <TableCell colSpan={5}>
-                    <Box sx={{ py: 6, textAlign: 'center', color: 'text.secondary' }}>ノードがありません</Box>
+                    <Box sx={{ py: 6, textAlign: "center", color: "text.secondary" }}>ノードがありません</Box>
                   </TableCell>
                 </TableRow>
               )}
@@ -157,8 +164,8 @@ export default function NodesPage() {
       <NodeCreateDialog
         open={isCreateOpen}
         onClose={() => {
-          setIsCreateOpen(false)
-          setCreateError(null)
+          setIsCreateOpen(false);
+          setCreateError(null);
         }}
         onSubmit={handleCreate}
         loading={createMutation.isPending}
@@ -168,7 +175,7 @@ export default function NodesPage() {
       <NodeTokenDialog
         token={createdToken}
         onClose={() => {
-          setCreatedToken(null)
+          setCreatedToken(null);
         }}
       />
 
@@ -176,14 +183,14 @@ export default function NodesPage() {
         open={Boolean(nodeToDelete)}
         nodeName={nodeToDelete?.nodeName}
         onClose={() => {
-          if (deleteMutation.isPending) return
-          setNodeToDelete(null)
-          setDeleteError(null)
+          if (deleteMutation.isPending) return;
+          setNodeToDelete(null);
+          setDeleteError(null);
         }}
         onConfirm={handleDeleteConfirm}
         loading={deleteMutation.isPending}
         error={deleteError}
       />
     </Stack>
-  )
+  );
 }

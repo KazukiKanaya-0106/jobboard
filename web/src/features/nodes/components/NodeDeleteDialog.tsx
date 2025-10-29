@@ -1,22 +1,13 @@
-import {
-  Alert,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Stack,
-  Typography,
-} from '@mui/material'
+import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, Typography } from "@mui/material";
 
 type NodeDeleteDialogProps = {
-  open: boolean
-  nodeName?: string
-  onClose: () => void
-  onConfirm: () => Promise<void> | void
-  loading?: boolean
-  error?: string | null
-}
+  open: boolean;
+  nodeName?: string;
+  onClose: () => void;
+  onConfirm: () => Promise<void> | void;
+  loading?: boolean;
+  error?: string | null;
+};
 
 export default function NodeDeleteDialog({
   open,
@@ -57,5 +48,5 @@ export default function NodeDeleteDialog({
         </Button>
       </DialogActions>
     </Dialog>
-  )
+  );
 }

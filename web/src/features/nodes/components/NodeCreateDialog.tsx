@@ -1,53 +1,45 @@
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  TextField,
-  Stack,
-} from '@mui/material'
-import { useState } from 'react'
-import { createNodeRequestSchema, type CreateNodeRequest } from '../schemas'
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Stack } from "@mui/material";
+import { useState } from "react";
+import { createNodeRequestSchema, type CreateNodeRequest } from "../schemas";
 
 type NodeCreateDialogProps = {
-  open: boolean
-  onClose: () => void
-  onSubmit: (values: CreateNodeRequest) => Promise<void>
-  loading?: boolean
-  apiError?: string | null
-}
+  open: boolean;
+  onClose: () => void;
+  onSubmit: (values: CreateNodeRequest) => Promise<void>;
+  loading?: boolean;
+  apiError?: string | null;
+};
 
-type FormErrors = Partial<Record<keyof CreateNodeRequest, string>>
+type FormErrors = Partial<Record<keyof CreateNodeRequest, string>>;
 
 export default function NodeCreateDialog({ open, onClose, onSubmit, loading, apiError }: NodeCreateDialogProps) {
-  const [nodeName, setNodeName] = useState('')
-  const [errors, setErrors] = useState<FormErrors>({})
+  const [nodeName, setNodeName] = useState("");
+  const [errors, setErrors] = useState<FormErrors>({});
 
   const handleClose = () => {
-    setErrors({})
-    setNodeName('')
-    onClose()
-  }
+    setErrors({});
+    setNodeName("");
+    onClose();
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const parseResult = createNodeRequestSchema.safeParse({ nodeName })
+    event.preventDefault();
+    const parseResult = createNodeRequestSchema.safeParse({ nodeName });
     if (!parseResult.success) {
-      const fieldErrors: FormErrors = {}
+      const fieldErrors: FormErrors = {};
       parseResult.error.issues.forEach((issue) => {
-        const field = issue.path[0]
-        if (typeof field === 'string') {
-          fieldErrors[field as keyof CreateNodeRequest] = issue.message
+        const field = issue.path[0];
+        if (typeof field === "string") {
+          fieldErrors[field as keyof CreateNodeRequest] = issue.message;
         }
-      })
-      setErrors(fieldErrors)
-      return
+      });
+      setErrors(fieldErrors);
+      return;
     }
-    setErrors({})
-    await onSubmit(parseResult.data)
-    setNodeName('')
-  }
+    setErrors({});
+    await onSubmit(parseResult.data);
+    setNodeName("");
+  };
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
@@ -77,5 +69,5 @@ export default function NodeCreateDialog({ open, onClose, onSubmit, loading, api
         </DialogActions>
       </form>
     </Dialog>
-  )
+  );
 }
