@@ -14,17 +14,26 @@ ORDER BY started_at DESC, id DESC;
 
 -- name: CreateJob :one
 INSERT INTO jobs (
-  cluster_id, node_id
+    cluster_id,
+    node_id,
+    started_at,
+    status,
+    tag
 ) VALUES (
-  $1, $2
+    $1,
+    $2,
+    COALESCE($3, NOW()),
+    COALESCE($4, 'running'),
+    $5
 )
 RETURNING *;
 
 -- name: UpdateJob :one
 UPDATE jobs
-SET started_at = COALESCE($2, started_at),
+SET started_at  = COALESCE($2, started_at),
     finished_at = COALESCE($3, finished_at),
-    status = COALESCE($4, status),
-    tag = COALESCE($5, tag)
+    status      = COALESCE($4, status),
+    tag         = COALESCE($5, tag),
+    duration_hours = COALESCE($6, duration_hours)
 WHERE id = $1
 RETURNING *;

@@ -24,11 +24,13 @@ func NewJobHandler(queries repo.Querier) *JobHandler {
 }
 
 type jobResponse struct {
-	ID         int64      `json:"id"`
-	NodeID     int64      `json:"node_id"`
-	Status     string     `json:"status"`
-	StartedAt  *time.Time `json:"started_at,omitempty"`
-	FinishedAt *time.Time `json:"finished_at,omitempty"`
+	ID            int64      `json:"id"`
+	NodeID        int64      `json:"node_id"`
+	Status        string     `json:"status"`
+	StartedAt     *time.Time `json:"started_at,omitempty"`
+	FinishedAt    *time.Time `json:"finished_at,omitempty"`
+	DurationHours *float64   `json:"duration_hours,omitempty"`
+	Tag           *string    `json:"tag,omitempty"`
 }
 
 func (h *JobHandler) List(c *gin.Context) {
@@ -122,10 +124,12 @@ func timestamptzPtr(ts pgtype.Timestamptz) *time.Time {
 
 func jobToResponse(job repo.Job) jobResponse {
 	return jobResponse{
-		ID:         job.ID,
-		NodeID:     job.NodeID,
-		Status:     job.Status,
-		StartedAt:  timestamptzPtr(job.StartedAt),
-		FinishedAt: timestamptzPtr(job.FinishedAt),
+		ID:            job.ID,
+		NodeID:        job.NodeID,
+		Status:        job.Status,
+		StartedAt:     timestamptzPtr(job.StartedAt),
+		FinishedAt:    timestamptzPtr(job.FinishedAt),
+		DurationHours: intervalToHours(job.DurationHours),
+		Tag:           job.Tag,
 	}
 }

@@ -13,20 +13,37 @@ import (
 
 const createJob = `-- name: CreateJob :one
 INSERT INTO jobs (
-  cluster_id, node_id
+    cluster_id,
+    node_id,
+    started_at,
+    status,
+    tag
 ) VALUES (
-  $1, $2
+    $1,
+    $2,
+    COALESCE($3, NOW()),
+    COALESCE($4, 'running'),
+    $5
 )
-RETURNING id, cluster_id, node_id, started_at, finished_at, status, tag
+RETURNING id, cluster_id, node_id, started_at, finished_at, duration_hours, status, tag
 `
 
 type CreateJobParams struct {
-	ClusterID string `json:"cluster_id"`
-	NodeID    int64  `json:"node_id"`
+	ClusterID string      `json:"cluster_id"`
+	NodeID    int64       `json:"node_id"`
+	Column3   interface{} `json:"column_3"`
+	Column4   interface{} `json:"column_4"`
+	Tag       *string     `json:"tag"`
 }
 
 func (q *Queries) CreateJob(ctx context.Context, arg CreateJobParams) (Job, error) {
-	row := q.db.QueryRow(ctx, createJob, arg.ClusterID, arg.NodeID)
+	row := q.db.QueryRow(ctx, createJob,
+		arg.ClusterID,
+		arg.NodeID,
+		arg.Column3,
+		arg.Column4,
+		arg.Tag,
+	)
 	var i Job
 	err := row.Scan(
 		&i.ID,
@@ -34,6 +51,7 @@ func (q *Queries) CreateJob(ctx context.Context, arg CreateJobParams) (Job, erro
 		&i.NodeID,
 		&i.StartedAt,
 		&i.FinishedAt,
+		&i.DurationHours,
 		&i.Status,
 		&i.Tag,
 	)
@@ -41,7 +59,7 @@ func (q *Queries) CreateJob(ctx context.Context, arg CreateJobParams) (Job, erro
 }
 
 const getJobByClusterAndJobID = `-- name: GetJobByClusterAndJobID :one
-SELECT id, cluster_id, node_id, started_at, finished_at, status, tag FROM jobs
+SELECT id, cluster_id, node_id, started_at, finished_at, duration_hours, status, tag FROM jobs
 WHERE cluster_id = $1 AND id = $2 LIMIT 1
 `
 
@@ -59,6 +77,7 @@ func (q *Queries) GetJobByClusterAndJobID(ctx context.Context, arg GetJobByClust
 		&i.NodeID,
 		&i.StartedAt,
 		&i.FinishedAt,
+		&i.DurationHours,
 		&i.Status,
 		&i.Tag,
 	)
@@ -66,7 +85,7 @@ func (q *Queries) GetJobByClusterAndJobID(ctx context.Context, arg GetJobByClust
 }
 
 const listJobsByCluster = `-- name: ListJobsByCluster :many
-SELECT id, cluster_id, node_id, started_at, finished_at, status, tag FROM jobs
+SELECT id, cluster_id, node_id, started_at, finished_at, duration_hours, status, tag FROM jobs
 WHERE cluster_id = $1
 ORDER BY started_at DESC, id DESC
 `
@@ -86,6 +105,7 @@ func (q *Queries) ListJobsByCluster(ctx context.Context, clusterID string) ([]Jo
 			&i.NodeID,
 			&i.StartedAt,
 			&i.FinishedAt,
+			&i.DurationHours,
 			&i.Status,
 			&i.Tag,
 		); err != nil {
@@ -100,7 +120,7 @@ func (q *Queries) ListJobsByCluster(ctx context.Context, clusterID string) ([]Jo
 }
 
 const listJobsByNode = `-- name: ListJobsByNode :many
-SELECT id, cluster_id, node_id, started_at, finished_at, status, tag FROM jobs
+SELECT id, cluster_id, node_id, started_at, finished_at, duration_hours, status, tag FROM jobs
 WHERE node_id = $1
 ORDER BY started_at DESC, id DESC
 `
@@ -120,6 +140,7 @@ func (q *Queries) ListJobsByNode(ctx context.Context, nodeID int64) ([]Job, erro
 			&i.NodeID,
 			&i.StartedAt,
 			&i.FinishedAt,
+			&i.DurationHours,
 			&i.Status,
 			&i.Tag,
 		); err != nil {
@@ -135,20 +156,22 @@ func (q *Queries) ListJobsByNode(ctx context.Context, nodeID int64) ([]Job, erro
 
 const updateJob = `-- name: UpdateJob :one
 UPDATE jobs
-SET started_at = COALESCE($2, started_at),
+SET started_at  = COALESCE($2, started_at),
     finished_at = COALESCE($3, finished_at),
-    status = COALESCE($4, status),
-    tag = COALESCE($5, tag)
+    status      = COALESCE($4, status),
+    tag         = COALESCE($5, tag),
+    duration_hours = COALESCE($6, duration_hours)
 WHERE id = $1
-RETURNING id, cluster_id, node_id, started_at, finished_at, status, tag
+RETURNING id, cluster_id, node_id, started_at, finished_at, duration_hours, status, tag
 `
 
 type UpdateJobParams struct {
-	ID         int64              `json:"id"`
-	StartedAt  pgtype.Timestamptz `json:"started_at"`
-	FinishedAt pgtype.Timestamptz `json:"finished_at"`
-	Status     string             `json:"status"`
-	Tag        *string            `json:"tag"`
+	ID            int64              `json:"id"`
+	StartedAt     pgtype.Timestamptz `json:"started_at"`
+	FinishedAt    pgtype.Timestamptz `json:"finished_at"`
+	Status        string             `json:"status"`
+	Tag           *string            `json:"tag"`
+	DurationHours pgtype.Interval    `json:"duration_hours"`
 }
 
 func (q *Queries) UpdateJob(ctx context.Context, arg UpdateJobParams) (Job, error) {
@@ -158,6 +181,7 @@ func (q *Queries) UpdateJob(ctx context.Context, arg UpdateJobParams) (Job, erro
 		arg.FinishedAt,
 		arg.Status,
 		arg.Tag,
+		arg.DurationHours,
 	)
 	var i Job
 	err := row.Scan(
@@ -166,6 +190,7 @@ func (q *Queries) UpdateJob(ctx context.Context, arg UpdateJobParams) (Job, erro
 		&i.NodeID,
 		&i.StartedAt,
 		&i.FinishedAt,
+		&i.DurationHours,
 		&i.Status,
 		&i.Tag,
 	)

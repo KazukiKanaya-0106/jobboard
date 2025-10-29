@@ -2,7 +2,9 @@ package handler
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"net/http"
 	"strconv"
 	"time"
@@ -10,7 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/kanaya/jobboard-hub/internal/database/repo"
 	"github.com/kanaya/jobboard-hub/internal/middleware"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type NodeHandler struct {
@@ -28,6 +29,7 @@ type nodeResponse struct {
 	NodeName     string    `json:"node_name"`
 	CurrentJobID *int64    `json:"current_job_id"`
 	CreatedAt    time.Time `json:"created_at"`
+	Webhook      string    `json:"webhook,omitempty"`
 }
 
 func nodeToResponse(node repo.Node) nodeResponse {
@@ -61,6 +63,11 @@ type createNodeRequest struct {
 	NodeName string `json:"node_name" binding:"required"`
 }
 
+type createNodeResponse struct {
+	nodeResponse
+	Webhook string `json:"webhook"`
+}
+
 func (h *NodeHandler) Create(c *gin.Context) {
 	var req createNodeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -75,23 +82,20 @@ func (h *NodeHandler) Create(c *gin.Context) {
 		return
 	}
 
-	secretHash, err := bcrypt.GenerateFromPassword([]byte(webhookSecret), bcrypt.DefaultCost)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to hash webhook secret"})
-		return
-	}
-
 	node, err := h.queries.CreateNode(c.Request.Context(), repo.CreateNodeParams{
 		ClusterID:         clusterID,
 		NodeName:          req.NodeName,
-		WebhookSecretHash: string(secretHash),
+		WebhookSecretHash: hashWebhookSecret(webhookSecret),
 	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create node"})
 		return
 	}
 
-	c.JSON(http.StatusOK, nodeToResponse(node))
+	c.JSON(http.StatusOK, createNodeResponse{
+		nodeResponse: nodeToResponse(node),
+		Webhook:      webhookSecret,
+	})
 }
 
 func (h *NodeHandler) Delete(c *gin.Context) {
@@ -126,4 +130,9 @@ func generateWebhookSecret() (string, error) {
 		return "", err
 	}
 	return base64.RawURLEncoding.EncodeToString(buf), nil
+}
+
+func hashWebhookSecret(webhookSecret string) string {
+	sum := sha256.Sum256([]byte(webhookSecret))
+	return hex.EncodeToString(sum[:])
 }

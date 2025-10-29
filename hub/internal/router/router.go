@@ -12,8 +12,8 @@ import (
 )
 
 func New(ctx context.Context, db *database.Database, jwtSecret []byte, tokenTTL time.Duration) *gin.Engine {
-	r := gin.New()
-	r.Use(gin.Logger(), gin.Recovery())
+	router := gin.New()
+	router.Use(gin.Logger(), gin.Recovery())
 
 	queries := repo.New(db.Pool)
 
@@ -25,10 +25,10 @@ func New(ctx context.Context, db *database.Database, jwtSecret []byte, tokenTTL 
 	nodeHandler := handler.NewNodeHandler(queries)
 	jobHandler := handler.NewJobHandler(queries)
 
-	r.GET("/health", healthHandler.Check)
-	r.GET("/", healthHandler.Info)
+	router.GET("/health", healthHandler.Check)
+	router.GET("/", healthHandler.Info)
 
-	api := r.Group("/api")
+	api := router.Group("/api")
 	{
 		auth := api.Group("/auth")
 		{
@@ -52,7 +52,11 @@ func New(ctx context.Context, db *database.Database, jwtSecret []byte, tokenTTL 
 			protected.GET("/jobs/:job_id", jobHandler.Get)
 			protected.GET("/nodes/:node_id/jobs", jobHandler.ListByNode)
 		}
+
+		{
+
+		}
 	}
 
-	return r
+	return router
 }

@@ -15,13 +15,14 @@ type Cluster struct {
 }
 
 type Job struct {
-	ID         int64              `json:"id"`
-	ClusterID  string             `json:"cluster_id"`
-	NodeID     int64              `json:"node_id"`
-	StartedAt  pgtype.Timestamptz `json:"started_at"`
-	FinishedAt pgtype.Timestamptz `json:"finished_at"`
-	Status     string             `json:"status"`
-	Tag        *string            `json:"tag"`
+	ID            int64              `json:"id"`
+	ClusterID     string             `json:"cluster_id"`
+	NodeID        int64              `json:"node_id"`
+	StartedAt     pgtype.Timestamptz `json:"started_at"`
+	FinishedAt    pgtype.Timestamptz `json:"finished_at"`
+	DurationHours pgtype.Interval    `json:"duration_hours"`
+	Status        string             `json:"status"`
+	Tag           *string            `json:"tag"`
 }
 
 type Node struct {

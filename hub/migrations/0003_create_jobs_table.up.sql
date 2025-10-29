@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS jobs (
     node_id BIGINT NOT NULL REFERENCES nodes(id) ON DELETE CASCADE,
     started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     finished_at TIMESTAMPTZ,
+    duration_hours INTERVAL,
     status VARCHAR(16) NOT NULL DEFAULT 'running',
     tag VARCHAR(128),
     CONSTRAINT jobs_status_check CHECK (status IN ('running', 'completed', 'failed'))
