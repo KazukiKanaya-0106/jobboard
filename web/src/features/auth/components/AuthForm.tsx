@@ -128,7 +128,7 @@ export default function AuthForm({ mode, onSubmit, loading, apiError }: AuthForm
       <Typography variant="body2" color="text.secondary">
         {mode === 'login' ? (
           <>
-            アカウントをお持ちでない場合は{' '}
+            クラスタをお持ちでない場合は{' '}
             <Link component={RouterLink} to="/auth/register">
               新規登録
             </Link>
@@ -136,7 +136,7 @@ export default function AuthForm({ mode, onSubmit, loading, apiError }: AuthForm
           </>
         ) : (
           <>
-            すでにアカウントをお持ちですか？{' '}
+            すでにクラスタをお持ちですか？{' '}
             <Link component={RouterLink} to="/auth/login">
               ログイン
             </Link>

@@ -1,7 +1,7 @@
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
-import { AuthProvider } from '../../features/auth/auth-context'
+import { AuthProvider } from '../../features/auth/AuthContext'
 
 type AppProvidersProps = {
   children: ReactNode

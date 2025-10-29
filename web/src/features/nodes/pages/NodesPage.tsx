@@ -20,7 +20,7 @@ import {
 } from '@mui/material'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { useAuth } from '../../auth/auth-context'
+import { useAuth } from '../../auth/AuthContext'
 import NodeCreateDialog from '../components/NodeCreateDialog'
 import NodeDeleteDialog from '../components/NodeDeleteDialog'
 import NodeTokenDialog from '../components/NodeTokenDialog'

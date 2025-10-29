@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import AuthForm from '../components/AuthForm'
 import { register } from '../api'
 import type { AuthCredentials } from '../schemas'
-import { useAuth } from '../auth-context'
+import { useAuth } from '../AuthContext'
 
 export default function RegisterPage() {
   const navigate = useNavigate()

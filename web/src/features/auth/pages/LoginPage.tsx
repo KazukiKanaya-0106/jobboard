@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import AuthForm from '../components/AuthForm'
 import { login } from '../api'
 import type { AuthCredentials } from '../schemas'
-import { useAuth } from '../auth-context'
+import { useAuth } from '../AuthContext'
 
 type LocationState = {
   from?: {

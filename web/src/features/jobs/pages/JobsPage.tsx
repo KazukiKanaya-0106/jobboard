@@ -15,7 +15,7 @@ import {
   Typography,
 } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
-import { useAuth } from '../../auth/auth-context'
+import { useAuth } from '../../auth/AuthContext'
 import { fetchJobs } from '../api'
 
 export default function JobsPage() {

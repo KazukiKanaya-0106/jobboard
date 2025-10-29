@@ -19,7 +19,7 @@ import {
 } from '@mui/material'
 import { useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { useAuth } from '../features/auth/auth-context'
+import { useAuth } from '../features/auth/AuthContext'
 
 const drawerWidth = 240
 

@@ -4,15 +4,15 @@ import { Outlet } from 'react-router-dom'
 export default function AuthLayout() {
   return (
     <Box
-      sx={{
+      sx={(theme) => ({
         minHeight: '100vh',
         display: 'grid',
         gridTemplateColumns: {
           xs: '1fr',
           md: '1.05fr 0.95fr',
         },
-        backgroundColor: (theme) => theme.palette.background.default,
-      }}
+        background: `linear-gradient(135deg, ${theme.palette.primary.light} 0%, ${theme.palette.primary.main} 60%, ${theme.palette.primary.dark} 100%)`,
+      })}
     >
       <Box
         sx={{
@@ -81,24 +81,30 @@ export default function AuthLayout() {
       </Box>
 
       <Box
-        sx={{
+        sx={(theme) => ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           px: { xs: 2, sm: 4, md: 6 },
           py: { xs: 6, sm: 8, md: 10 },
-        }}
+          background: 'transparent',
+          [theme.breakpoints.up('md')]: {
+            background: `linear-gradient(140deg, ${theme.palette.primary.light}1c 0%, ${theme.palette.background.default} 40%, ${theme.palette.primary.main}14 100%)`,
+            backdropFilter: 'blur(20px)',
+          },
+        })}
       >
         <Paper
           elevation={12}
-          sx={{
+          sx={(theme) => ({
             width: '100%',
             maxWidth: 440,
             p: { xs: 4, sm: 6 },
             borderRadius: 4,
-            border: (theme) => `1px solid ${theme.palette.divider}`,
-            boxShadow: (theme) => theme.shadows[10],
-          }}
+            border: `1px solid ${theme.palette.primary.main}22`,
+            boxShadow: theme.shadows[10],
+            background: theme.palette.background.paper,
+          })}
         >
           <Stack spacing={4}>
             <Box sx={{ display: { xs: 'block', md: 'none' } }}>
