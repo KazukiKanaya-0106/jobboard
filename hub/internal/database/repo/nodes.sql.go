@@ -11,27 +11,28 @@ import (
 
 const createNode = `-- name: CreateNode :one
 INSERT INTO nodes (
-  cluster_id, node_name, current_job_number
+  cluster_id, node_name, webhook_secret_hash
 ) VALUES (
   $1, $2, $3
 )
-RETURNING id, cluster_id, node_name, current_job_number, created_at
+RETURNING id, cluster_id, node_name, webhook_secret_hash, current_job_id, created_at
 `
 
 type CreateNodeParams struct {
-	ClusterID        string `json:"cluster_id"`
-	NodeName         string `json:"node_name"`
-	CurrentJobNumber *int32 `json:"current_job_number"`
+	ClusterID         string `json:"cluster_id"`
+	NodeName          string `json:"node_name"`
+	WebhookSecretHash string `json:"webhook_secret_hash"`
 }
 
 func (q *Queries) CreateNode(ctx context.Context, arg CreateNodeParams) (Node, error) {
-	row := q.db.QueryRow(ctx, createNode, arg.ClusterID, arg.NodeName, arg.CurrentJobNumber)
+	row := q.db.QueryRow(ctx, createNode, arg.ClusterID, arg.NodeName, arg.WebhookSecretHash)
 	var i Node
 	err := row.Scan(
 		&i.ID,
 		&i.ClusterID,
 		&i.NodeName,
-		&i.CurrentJobNumber,
+		&i.WebhookSecretHash,
+		&i.CurrentJobID,
 		&i.CreatedAt,
 	)
 	return i, err
@@ -58,7 +59,7 @@ func (q *Queries) DeleteNodesByCluster(ctx context.Context, clusterID string) er
 }
 
 const getNode = `-- name: GetNode :one
-SELECT id, cluster_id, node_name, current_job_number, created_at FROM nodes
+SELECT id, cluster_id, node_name, webhook_secret_hash, current_job_id, created_at FROM nodes
 WHERE id = $1 LIMIT 1
 `
 
@@ -69,14 +70,15 @@ func (q *Queries) GetNode(ctx context.Context, id int64) (Node, error) {
 		&i.ID,
 		&i.ClusterID,
 		&i.NodeName,
-		&i.CurrentJobNumber,
+		&i.WebhookSecretHash,
+		&i.CurrentJobID,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const getNodeByClusterAndNodeId = `-- name: GetNodeByClusterAndNodeId :one
-SELECT id, cluster_id, node_name, current_job_number, created_at FROM nodes
+SELECT id, cluster_id, node_name, webhook_secret_hash, current_job_id, created_at FROM nodes
 WHERE cluster_id = $1 AND node_name = $2 LIMIT 1
 `
 
@@ -92,14 +94,15 @@ func (q *Queries) GetNodeByClusterAndNodeId(ctx context.Context, arg GetNodeByCl
 		&i.ID,
 		&i.ClusterID,
 		&i.NodeName,
-		&i.CurrentJobNumber,
+		&i.WebhookSecretHash,
+		&i.CurrentJobID,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const listNodes = `-- name: ListNodes :many
-SELECT id, cluster_id, node_name, current_job_number, created_at FROM nodes
+SELECT id, cluster_id, node_name, webhook_secret_hash, current_job_id, created_at FROM nodes
 ORDER BY created_at DESC
 `
 
@@ -116,7 +119,8 @@ func (q *Queries) ListNodes(ctx context.Context) ([]Node, error) {
 			&i.ID,
 			&i.ClusterID,
 			&i.NodeName,
-			&i.CurrentJobNumber,
+			&i.WebhookSecretHash,
+			&i.CurrentJobID,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -130,7 +134,7 @@ func (q *Queries) ListNodes(ctx context.Context) ([]Node, error) {
 }
 
 const listNodesByCluster = `-- name: ListNodesByCluster :many
-SELECT id, cluster_id, node_name, current_job_number, created_at FROM nodes
+SELECT id, cluster_id, node_name, webhook_secret_hash, current_job_id, created_at FROM nodes
 WHERE cluster_id = $1
 ORDER BY node_name ASC
 `
@@ -148,7 +152,8 @@ func (q *Queries) ListNodesByCluster(ctx context.Context, clusterID string) ([]N
 			&i.ID,
 			&i.ClusterID,
 			&i.NodeName,
-			&i.CurrentJobNumber,
+			&i.WebhookSecretHash,
+			&i.CurrentJobID,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -161,26 +166,53 @@ func (q *Queries) ListNodesByCluster(ctx context.Context, clusterID string) ([]N
 	return items, nil
 }
 
-const updateNodeJobNumber = `-- name: UpdateNodeJobNumber :one
+const updateNodeCurrentJob = `-- name: UpdateNodeCurrentJob :one
 UPDATE nodes
-SET current_job_number = $2
+SET current_job_id = $2
 WHERE id = $1
-RETURNING id, cluster_id, node_name, current_job_number, created_at
+RETURNING id, cluster_id, node_name, webhook_secret_hash, current_job_id, created_at
 `
 
-type UpdateNodeJobNumberParams struct {
-	ID               int64  `json:"id"`
-	CurrentJobNumber *int32 `json:"current_job_number"`
+type UpdateNodeCurrentJobParams struct {
+	ID           int64  `json:"id"`
+	CurrentJobID *int64 `json:"current_job_id"`
 }
 
-func (q *Queries) UpdateNodeJobNumber(ctx context.Context, arg UpdateNodeJobNumberParams) (Node, error) {
-	row := q.db.QueryRow(ctx, updateNodeJobNumber, arg.ID, arg.CurrentJobNumber)
+func (q *Queries) UpdateNodeCurrentJob(ctx context.Context, arg UpdateNodeCurrentJobParams) (Node, error) {
+	row := q.db.QueryRow(ctx, updateNodeCurrentJob, arg.ID, arg.CurrentJobID)
 	var i Node
 	err := row.Scan(
 		&i.ID,
 		&i.ClusterID,
 		&i.NodeName,
-		&i.CurrentJobNumber,
+		&i.WebhookSecretHash,
+		&i.CurrentJobID,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const updateNodeWebhookSecret = `-- name: UpdateNodeWebhookSecret :one
+UPDATE nodes
+SET webhook_secret_hash = $2
+WHERE id = $1
+RETURNING id, cluster_id, node_name, webhook_secret_hash, current_job_id, created_at
+`
+
+type UpdateNodeWebhookSecretParams struct {
+	ID                int64  `json:"id"`
+	WebhookSecretHash string `json:"webhook_secret_hash"`
+}
+
+func (q *Queries) UpdateNodeWebhookSecret(ctx context.Context, arg UpdateNodeWebhookSecretParams) (Node, error) {
+	row := q.db.QueryRow(ctx, updateNodeWebhookSecret, arg.ID, arg.WebhookSecretHash)
+	var i Node
+	err := row.Scan(
+		&i.ID,
+		&i.ClusterID,
+		&i.NodeName,
+		&i.WebhookSecretHash,
+		&i.CurrentJobID,
 		&i.CreatedAt,
 	)
 	return i, err

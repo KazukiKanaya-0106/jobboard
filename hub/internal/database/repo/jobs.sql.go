@@ -13,47 +13,28 @@ import (
 
 const createJob = `-- name: CreateJob :one
 INSERT INTO jobs (
-  node_id, cluster_id, job_number, tag, "user", started_at, finished_at, duration_hours
+  cluster_id, node_id
 ) VALUES (
-  $1, $2, $3, $4, $5, $6, $7, $8
+  $1, $2
 )
-RETURNING id, node_id, cluster_id, job_number, tag, "user", started_at, finished_at, duration_hours, created_at
+RETURNING id, cluster_id, node_id, started_at, finished_at, status
 `
 
 type CreateJobParams struct {
-	NodeID        int64            `json:"node_id"`
-	ClusterID     string           `json:"cluster_id"`
-	JobNumber     int32            `json:"job_number"`
-	Tag           *string          `json:"tag"`
-	User          *string          `json:"user"`
-	StartedAt     pgtype.Timestamp `json:"started_at"`
-	FinishedAt    pgtype.Timestamp `json:"finished_at"`
-	DurationHours pgtype.Numeric   `json:"duration_hours"`
+	ClusterID string `json:"cluster_id"`
+	NodeID    int64  `json:"node_id"`
 }
 
 func (q *Queries) CreateJob(ctx context.Context, arg CreateJobParams) (Job, error) {
-	row := q.db.QueryRow(ctx, createJob,
-		arg.NodeID,
-		arg.ClusterID,
-		arg.JobNumber,
-		arg.Tag,
-		arg.User,
-		arg.StartedAt,
-		arg.FinishedAt,
-		arg.DurationHours,
-	)
+	row := q.db.QueryRow(ctx, createJob, arg.ClusterID, arg.NodeID)
 	var i Job
 	err := row.Scan(
 		&i.ID,
-		&i.NodeID,
 		&i.ClusterID,
-		&i.JobNumber,
-		&i.Tag,
-		&i.User,
+		&i.NodeID,
 		&i.StartedAt,
 		&i.FinishedAt,
-		&i.DurationHours,
-		&i.CreatedAt,
+		&i.Status,
 	)
 	return i, err
 }
@@ -89,7 +70,7 @@ func (q *Queries) DeleteJobsByNode(ctx context.Context, nodeID int64) error {
 }
 
 const getJob = `-- name: GetJob :one
-SELECT id, node_id, cluster_id, job_number, tag, "user", started_at, finished_at, duration_hours, created_at FROM jobs
+SELECT id, cluster_id, node_id, started_at, finished_at, status FROM jobs
 WHERE id = $1 LIMIT 1
 `
 
@@ -98,50 +79,42 @@ func (q *Queries) GetJob(ctx context.Context, id int64) (Job, error) {
 	var i Job
 	err := row.Scan(
 		&i.ID,
-		&i.NodeID,
 		&i.ClusterID,
-		&i.JobNumber,
-		&i.Tag,
-		&i.User,
+		&i.NodeID,
 		&i.StartedAt,
 		&i.FinishedAt,
-		&i.DurationHours,
-		&i.CreatedAt,
+		&i.Status,
 	)
 	return i, err
 }
 
 const getJobByClusterAndJobId = `-- name: GetJobByClusterAndJobId :one
-SELECT id, node_id, cluster_id, job_number, tag, "user", started_at, finished_at, duration_hours, created_at FROM jobs
-WHERE cluster_id = $1 AND job_number = $2 LIMIT 1
+SELECT id, cluster_id, node_id, started_at, finished_at, status FROM jobs
+WHERE cluster_id = $1 AND id = $2 LIMIT 1
 `
 
 type GetJobByClusterAndJobIdParams struct {
 	ClusterID string `json:"cluster_id"`
-	JobNumber int32  `json:"job_number"`
+	ID        int64  `json:"id"`
 }
 
 func (q *Queries) GetJobByClusterAndJobId(ctx context.Context, arg GetJobByClusterAndJobIdParams) (Job, error) {
-	row := q.db.QueryRow(ctx, getJobByClusterAndJobId, arg.ClusterID, arg.JobNumber)
+	row := q.db.QueryRow(ctx, getJobByClusterAndJobId, arg.ClusterID, arg.ID)
 	var i Job
 	err := row.Scan(
 		&i.ID,
-		&i.NodeID,
 		&i.ClusterID,
-		&i.JobNumber,
-		&i.Tag,
-		&i.User,
+		&i.NodeID,
 		&i.StartedAt,
 		&i.FinishedAt,
-		&i.DurationHours,
-		&i.CreatedAt,
+		&i.Status,
 	)
 	return i, err
 }
 
 const listJobs = `-- name: ListJobs :many
-SELECT id, node_id, cluster_id, job_number, tag, "user", started_at, finished_at, duration_hours, created_at FROM jobs
-ORDER BY created_at DESC
+SELECT id, cluster_id, node_id, started_at, finished_at, status FROM jobs
+ORDER BY started_at DESC, id DESC
 `
 
 func (q *Queries) ListJobs(ctx context.Context) ([]Job, error) {
@@ -155,15 +128,11 @@ func (q *Queries) ListJobs(ctx context.Context) ([]Job, error) {
 		var i Job
 		if err := rows.Scan(
 			&i.ID,
-			&i.NodeID,
 			&i.ClusterID,
-			&i.JobNumber,
-			&i.Tag,
-			&i.User,
+			&i.NodeID,
 			&i.StartedAt,
 			&i.FinishedAt,
-			&i.DurationHours,
-			&i.CreatedAt,
+			&i.Status,
 		); err != nil {
 			return nil, err
 		}
@@ -176,9 +145,9 @@ func (q *Queries) ListJobs(ctx context.Context) ([]Job, error) {
 }
 
 const listJobsByCluster = `-- name: ListJobsByCluster :many
-SELECT id, node_id, cluster_id, job_number, tag, "user", started_at, finished_at, duration_hours, created_at FROM jobs
+SELECT id, cluster_id, node_id, started_at, finished_at, status FROM jobs
 WHERE cluster_id = $1
-ORDER BY started_at DESC
+ORDER BY started_at DESC, id DESC
 `
 
 func (q *Queries) ListJobsByCluster(ctx context.Context, clusterID string) ([]Job, error) {
@@ -192,15 +161,11 @@ func (q *Queries) ListJobsByCluster(ctx context.Context, clusterID string) ([]Jo
 		var i Job
 		if err := rows.Scan(
 			&i.ID,
-			&i.NodeID,
 			&i.ClusterID,
-			&i.JobNumber,
-			&i.Tag,
-			&i.User,
+			&i.NodeID,
 			&i.StartedAt,
 			&i.FinishedAt,
-			&i.DurationHours,
-			&i.CreatedAt,
+			&i.Status,
 		); err != nil {
 			return nil, err
 		}
@@ -213,9 +178,9 @@ func (q *Queries) ListJobsByCluster(ctx context.Context, clusterID string) ([]Jo
 }
 
 const listJobsByNode = `-- name: ListJobsByNode :many
-SELECT id, node_id, cluster_id, job_number, tag, "user", started_at, finished_at, duration_hours, created_at FROM jobs
+SELECT id, cluster_id, node_id, started_at, finished_at, status FROM jobs
 WHERE node_id = $1
-ORDER BY started_at DESC
+ORDER BY started_at DESC, id DESC
 `
 
 func (q *Queries) ListJobsByNode(ctx context.Context, nodeID int64) ([]Job, error) {
@@ -229,52 +194,11 @@ func (q *Queries) ListJobsByNode(ctx context.Context, nodeID int64) ([]Job, erro
 		var i Job
 		if err := rows.Scan(
 			&i.ID,
-			&i.NodeID,
 			&i.ClusterID,
-			&i.JobNumber,
-			&i.Tag,
-			&i.User,
+			&i.NodeID,
 			&i.StartedAt,
 			&i.FinishedAt,
-			&i.DurationHours,
-			&i.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listJobsByUser = `-- name: ListJobsByUser :many
-SELECT id, node_id, cluster_id, job_number, tag, "user", started_at, finished_at, duration_hours, created_at FROM jobs
-WHERE "user" = $1
-ORDER BY started_at DESC
-`
-
-func (q *Queries) ListJobsByUser(ctx context.Context, user *string) ([]Job, error) {
-	rows, err := q.db.Query(ctx, listJobsByUser, user)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []Job{}
-	for rows.Next() {
-		var i Job
-		if err := rows.Scan(
-			&i.ID,
-			&i.NodeID,
-			&i.ClusterID,
-			&i.JobNumber,
-			&i.Tag,
-			&i.User,
-			&i.StartedAt,
-			&i.FinishedAt,
-			&i.DurationHours,
-			&i.CreatedAt,
+			&i.Status,
 		); err != nil {
 			return nil, err
 		}
@@ -288,45 +212,35 @@ func (q *Queries) ListJobsByUser(ctx context.Context, user *string) ([]Job, erro
 
 const updateJob = `-- name: UpdateJob :one
 UPDATE jobs
-SET tag = $2,
-    "user" = $3,
-    started_at = $4,
-    finished_at = $5,
-    duration_hours = $6
+SET started_at = COALESCE($2, started_at),
+    finished_at = COALESCE($3, finished_at),
+    status = COALESCE($4, status)
 WHERE id = $1
-RETURNING id, node_id, cluster_id, job_number, tag, "user", started_at, finished_at, duration_hours, created_at
+RETURNING id, cluster_id, node_id, started_at, finished_at, status
 `
 
 type UpdateJobParams struct {
-	ID            int64            `json:"id"`
-	Tag           *string          `json:"tag"`
-	User          *string          `json:"user"`
-	StartedAt     pgtype.Timestamp `json:"started_at"`
-	FinishedAt    pgtype.Timestamp `json:"finished_at"`
-	DurationHours pgtype.Numeric   `json:"duration_hours"`
+	ID         int64              `json:"id"`
+	StartedAt  pgtype.Timestamptz `json:"started_at"`
+	FinishedAt pgtype.Timestamptz `json:"finished_at"`
+	Status     string             `json:"status"`
 }
 
 func (q *Queries) UpdateJob(ctx context.Context, arg UpdateJobParams) (Job, error) {
 	row := q.db.QueryRow(ctx, updateJob,
 		arg.ID,
-		arg.Tag,
-		arg.User,
 		arg.StartedAt,
 		arg.FinishedAt,
-		arg.DurationHours,
+		arg.Status,
 	)
 	var i Job
 	err := row.Scan(
 		&i.ID,
-		&i.NodeID,
 		&i.ClusterID,
-		&i.JobNumber,
-		&i.Tag,
-		&i.User,
+		&i.NodeID,
 		&i.StartedAt,
 		&i.FinishedAt,
-		&i.DurationHours,
-		&i.CreatedAt,
+		&i.Status,
 	)
 	return i, err
 }

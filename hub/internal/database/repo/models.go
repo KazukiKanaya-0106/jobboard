@@ -9,29 +9,25 @@ import (
 )
 
 type Cluster struct {
-	ID           string           `json:"id"`
-	PasswordHash string           `json:"password_hash"`
-	CreatedAt    pgtype.Timestamp `json:"created_at"`
-	UpdatedAt    pgtype.Timestamp `json:"updated_at"`
+	ID           string             `json:"id"`
+	PasswordHash string             `json:"password_hash"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
 }
 
 type Job struct {
-	ID            int64            `json:"id"`
-	NodeID        int64            `json:"node_id"`
-	ClusterID     string           `json:"cluster_id"`
-	JobNumber     int32            `json:"job_number"`
-	Tag           *string          `json:"tag"`
-	User          *string          `json:"user"`
-	StartedAt     pgtype.Timestamp `json:"started_at"`
-	FinishedAt    pgtype.Timestamp `json:"finished_at"`
-	DurationHours pgtype.Numeric   `json:"duration_hours"`
-	CreatedAt     pgtype.Timestamp `json:"created_at"`
+	ID         int64              `json:"id"`
+	ClusterID  string             `json:"cluster_id"`
+	NodeID     int64              `json:"node_id"`
+	StartedAt  pgtype.Timestamptz `json:"started_at"`
+	FinishedAt pgtype.Timestamptz `json:"finished_at"`
+	Status     string             `json:"status"`
 }
 
 type Node struct {
-	ID               int64            `json:"id"`
-	ClusterID        string           `json:"cluster_id"`
-	NodeName         string           `json:"node_name"`
-	CurrentJobNumber *int32           `json:"current_job_number"`
-	CreatedAt        pgtype.Timestamp `json:"created_at"`
+	ID                int64              `json:"id"`
+	ClusterID         string             `json:"cluster_id"`
+	NodeName          string             `json:"node_name"`
+	WebhookSecretHash string             `json:"webhook_secret_hash"`
+	CurrentJobID      *int64             `json:"current_job_id"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
 }

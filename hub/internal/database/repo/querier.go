@@ -27,12 +27,12 @@ type Querier interface {
 	ListJobs(ctx context.Context) ([]Job, error)
 	ListJobsByCluster(ctx context.Context, clusterID string) ([]Job, error)
 	ListJobsByNode(ctx context.Context, nodeID int64) ([]Job, error)
-	ListJobsByUser(ctx context.Context, user *string) ([]Job, error)
 	ListNodes(ctx context.Context) ([]Node, error)
 	ListNodesByCluster(ctx context.Context, clusterID string) ([]Node, error)
 	UpdateCluster(ctx context.Context, arg UpdateClusterParams) (Cluster, error)
 	UpdateJob(ctx context.Context, arg UpdateJobParams) (Job, error)
-	UpdateNodeJobNumber(ctx context.Context, arg UpdateNodeJobNumberParams) (Node, error)
+	UpdateNodeCurrentJob(ctx context.Context, arg UpdateNodeCurrentJobParams) (Node, error)
+	UpdateNodeWebhookSecret(ctx context.Context, arg UpdateNodeWebhookSecretParams) (Node, error)
 }
 
 var _ Querier = (*Queries)(nil)

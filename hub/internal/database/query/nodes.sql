@@ -17,15 +17,21 @@ ORDER BY node_name ASC;
 
 -- name: CreateNode :one
 INSERT INTO nodes (
-  cluster_id, node_name, current_job_number
+  cluster_id, node_name, webhook_secret_hash
 ) VALUES (
   $1, $2, $3
 )
 RETURNING *;
 
--- name: UpdateNodeJobNumber :one
+-- name: UpdateNodeCurrentJob :one
 UPDATE nodes
-SET current_job_number = $2
+SET current_job_id = $2
+WHERE id = $1
+RETURNING *;
+
+-- name: UpdateNodeWebhookSecret :one
+UPDATE nodes
+SET webhook_secret_hash = $2
 WHERE id = $1
 RETURNING *;
 

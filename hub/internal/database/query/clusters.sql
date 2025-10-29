@@ -16,8 +16,7 @@ RETURNING *;
 
 -- name: UpdateCluster :one
 UPDATE clusters
-SET password_hash = $2,
-    updated_at = CURRENT_TIMESTAMP
+SET password_hash = $2
 WHERE id = $1
 RETURNING *;
 

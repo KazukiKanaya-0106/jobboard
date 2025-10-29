@@ -15,7 +15,7 @@ INSERT INTO clusters (
 ) VALUES (
   $1, $2
 )
-RETURNING id, password_hash, created_at, updated_at
+RETURNING id, password_hash, created_at
 `
 
 type CreateClusterParams struct {
@@ -26,12 +26,7 @@ type CreateClusterParams struct {
 func (q *Queries) CreateCluster(ctx context.Context, arg CreateClusterParams) (Cluster, error) {
 	row := q.db.QueryRow(ctx, createCluster, arg.ID, arg.PasswordHash)
 	var i Cluster
-	err := row.Scan(
-		&i.ID,
-		&i.PasswordHash,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
+	err := row.Scan(&i.ID, &i.PasswordHash, &i.CreatedAt)
 	return i, err
 }
 
@@ -46,24 +41,19 @@ func (q *Queries) DeleteCluster(ctx context.Context, id string) error {
 }
 
 const getCluster = `-- name: GetCluster :one
-SELECT id, password_hash, created_at, updated_at FROM clusters
+SELECT id, password_hash, created_at FROM clusters
 WHERE id = $1 LIMIT 1
 `
 
 func (q *Queries) GetCluster(ctx context.Context, id string) (Cluster, error) {
 	row := q.db.QueryRow(ctx, getCluster, id)
 	var i Cluster
-	err := row.Scan(
-		&i.ID,
-		&i.PasswordHash,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
+	err := row.Scan(&i.ID, &i.PasswordHash, &i.CreatedAt)
 	return i, err
 }
 
 const listClusters = `-- name: ListClusters :many
-SELECT id, password_hash, created_at, updated_at FROM clusters
+SELECT id, password_hash, created_at FROM clusters
 ORDER BY created_at DESC
 `
 
@@ -76,12 +66,7 @@ func (q *Queries) ListClusters(ctx context.Context) ([]Cluster, error) {
 	items := []Cluster{}
 	for rows.Next() {
 		var i Cluster
-		if err := rows.Scan(
-			&i.ID,
-			&i.PasswordHash,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
+		if err := rows.Scan(&i.ID, &i.PasswordHash, &i.CreatedAt); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -94,10 +79,9 @@ func (q *Queries) ListClusters(ctx context.Context) ([]Cluster, error) {
 
 const updateCluster = `-- name: UpdateCluster :one
 UPDATE clusters
-SET password_hash = $2,
-    updated_at = CURRENT_TIMESTAMP
+SET password_hash = $2
 WHERE id = $1
-RETURNING id, password_hash, created_at, updated_at
+RETURNING id, password_hash, created_at
 `
 
 type UpdateClusterParams struct {
@@ -108,11 +92,6 @@ type UpdateClusterParams struct {
 func (q *Queries) UpdateCluster(ctx context.Context, arg UpdateClusterParams) (Cluster, error) {
 	row := q.db.QueryRow(ctx, updateCluster, arg.ID, arg.PasswordHash)
 	var i Cluster
-	err := row.Scan(
-		&i.ID,
-		&i.PasswordHash,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
+	err := row.Scan(&i.ID, &i.PasswordHash, &i.CreatedAt)
 	return i, err
 }
