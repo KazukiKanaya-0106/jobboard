@@ -23,3 +23,7 @@ UPDATE nodes
 SET current_job_id = $2
 WHERE id = $1
 RETURNING id, cluster_id, node_name, webhook_secret_hash, current_job_id, created_at;
+
+-- name: DeleteNodeByCluster :execrows
+DELETE FROM nodes
+WHERE id = $1 AND cluster_id = $2;

@@ -3,11 +3,13 @@ package config
 import (
 	"fmt"
 	"os"
+	"time"
 )
 
 type Config struct {
 	Server   ServerConfig
 	Database DatabaseConfig
+	Auth     AuthConfig
 }
 
 type ServerConfig struct {
@@ -22,7 +24,14 @@ type DatabaseConfig struct {
 	Name     string
 }
 
+type AuthConfig struct {
+	JWTSecret string
+	TokenTTL  time.Duration
+}
+
 func Load() *Config {
+	tokenTTL := parseDurationEnv("AUTH_TOKEN_TTL", 15*time.Minute)
+
 	return &Config{
 		Server: ServerConfig{
 			Port: getEnv("PORT", "8080"),
@@ -33,6 +42,10 @@ func Load() *Config {
 			User:     getEnv("DB_USER", "postgres"),
 			Password: getEnv("DB_PASSWORD", "postgres"),
 			Name:     getEnv("DB_NAME", "jobboard"),
+		},
+		Auth: AuthConfig{
+			JWTSecret: getEnv("AUTH_JWT_SECRET", "dev-secret-change-me"),
+			TokenTTL:  tokenTTL,
 		},
 	}
 }
@@ -47,4 +60,13 @@ func getEnv(key, defaultValue string) string {
 		return value
 	}
 	return defaultValue
+}
+
+func parseDurationEnv(key string, fallback time.Duration) time.Duration {
+	if v := os.Getenv(key); v != "" {
+		if d, err := time.ParseDuration(v); err == nil {
+			return d
+		}
+	}
+	return fallback
 }

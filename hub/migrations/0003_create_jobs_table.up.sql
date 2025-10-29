@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS jobs (
     started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     finished_at TIMESTAMPTZ,
     status VARCHAR(16) NOT NULL DEFAULT 'running',
+    tag VARCHAR(128),
     CONSTRAINT jobs_status_check CHECK (status IN ('running', 'completed', 'failed'))
 );
 

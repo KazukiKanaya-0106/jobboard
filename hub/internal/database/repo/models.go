@@ -21,6 +21,7 @@ type Job struct {
 	StartedAt  pgtype.Timestamptz `json:"started_at"`
 	FinishedAt pgtype.Timestamptz `json:"finished_at"`
 	Status     string             `json:"status"`
+	Tag        *string            `json:"tag"`
 }
 
 type Node struct {

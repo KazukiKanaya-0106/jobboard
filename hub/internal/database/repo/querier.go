@@ -13,6 +13,7 @@ type Querier interface {
 	CreateJob(ctx context.Context, arg CreateJobParams) (Job, error)
 	CreateNode(ctx context.Context, arg CreateNodeParams) (Node, error)
 	DeleteCluster(ctx context.Context, id string) error
+	DeleteNodeByCluster(ctx context.Context, arg DeleteNodeByClusterParams) (int64, error)
 	GetCluster(ctx context.Context, id string) (Cluster, error)
 	GetJobByClusterAndJobId(ctx context.Context, arg GetJobByClusterAndJobIdParams) (Job, error)
 	GetNodeByWebhookSecretHash(ctx context.Context, webhookSecretHash string) (Node, error)

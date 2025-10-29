@@ -38,6 +38,24 @@ func (q *Queries) CreateNode(ctx context.Context, arg CreateNodeParams) (Node, e
 	return i, err
 }
 
+const deleteNodeByCluster = `-- name: DeleteNodeByCluster :execrows
+DELETE FROM nodes
+WHERE id = $1 AND cluster_id = $2
+`
+
+type DeleteNodeByClusterParams struct {
+	ID        int64  `json:"id"`
+	ClusterID string `json:"cluster_id"`
+}
+
+func (q *Queries) DeleteNodeByCluster(ctx context.Context, arg DeleteNodeByClusterParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteNodeByCluster, arg.ID, arg.ClusterID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const getNodeByWebhookSecretHash = `-- name: GetNodeByWebhookSecretHash :one
 SELECT id, cluster_id, node_name, webhook_secret_hash, current_job_id, created_at
 FROM nodes

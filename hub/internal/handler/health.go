@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/kanaya/jobboard-hub/internal/database"
@@ -21,19 +22,19 @@ func NewHealthHandler(ctx context.Context, db *database.Database) *HealthHandler
 
 func (h *HealthHandler) Check(c *gin.Context) {
 	if err := h.db.Ping(h.ctx); err != nil {
-		c.JSON(503, gin.H{
+		c.JSON(http.StatusServiceUnavailable, gin.H{
 			"status": "error",
 			"error":  "database unavailable",
 		})
 		return
 	}
-	c.JSON(200, gin.H{
+	c.JSON(http.StatusOK, gin.H{
 		"status": "ok",
 	})
 }
 
 func (h *HealthHandler) Info(c *gin.Context) {
-	c.JSON(200, gin.H{
+	c.JSON(http.StatusOK, gin.H{
 		"message": "Job Board API",
 		"version": "1.0.0",
 	})

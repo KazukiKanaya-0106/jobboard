@@ -24,7 +24,7 @@ func main() {
 	defer db.Close()
 	log.Println("Successfully connected to database")
 
-	r := router.New(ctx, db)
+	r := router.New(ctx, db, []byte(cfg.Auth.JWTSecret), cfg.Auth.TokenTTL)
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
