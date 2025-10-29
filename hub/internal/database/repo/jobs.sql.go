@@ -39,55 +39,6 @@ func (q *Queries) CreateJob(ctx context.Context, arg CreateJobParams) (Job, erro
 	return i, err
 }
 
-const deleteJob = `-- name: DeleteJob :exec
-DELETE FROM jobs
-WHERE id = $1
-`
-
-func (q *Queries) DeleteJob(ctx context.Context, id int64) error {
-	_, err := q.db.Exec(ctx, deleteJob, id)
-	return err
-}
-
-const deleteJobsByCluster = `-- name: DeleteJobsByCluster :exec
-DELETE FROM jobs
-WHERE cluster_id = $1
-`
-
-func (q *Queries) DeleteJobsByCluster(ctx context.Context, clusterID string) error {
-	_, err := q.db.Exec(ctx, deleteJobsByCluster, clusterID)
-	return err
-}
-
-const deleteJobsByNode = `-- name: DeleteJobsByNode :exec
-DELETE FROM jobs
-WHERE node_id = $1
-`
-
-func (q *Queries) DeleteJobsByNode(ctx context.Context, nodeID int64) error {
-	_, err := q.db.Exec(ctx, deleteJobsByNode, nodeID)
-	return err
-}
-
-const getJob = `-- name: GetJob :one
-SELECT id, cluster_id, node_id, started_at, finished_at, status FROM jobs
-WHERE id = $1 LIMIT 1
-`
-
-func (q *Queries) GetJob(ctx context.Context, id int64) (Job, error) {
-	row := q.db.QueryRow(ctx, getJob, id)
-	var i Job
-	err := row.Scan(
-		&i.ID,
-		&i.ClusterID,
-		&i.NodeID,
-		&i.StartedAt,
-		&i.FinishedAt,
-		&i.Status,
-	)
-	return i, err
-}
-
 const getJobByClusterAndJobId = `-- name: GetJobByClusterAndJobId :one
 SELECT id, cluster_id, node_id, started_at, finished_at, status FROM jobs
 WHERE cluster_id = $1 AND id = $2 LIMIT 1
@@ -110,38 +61,6 @@ func (q *Queries) GetJobByClusterAndJobId(ctx context.Context, arg GetJobByClust
 		&i.Status,
 	)
 	return i, err
-}
-
-const listJobs = `-- name: ListJobs :many
-SELECT id, cluster_id, node_id, started_at, finished_at, status FROM jobs
-ORDER BY started_at DESC, id DESC
-`
-
-func (q *Queries) ListJobs(ctx context.Context) ([]Job, error) {
-	rows, err := q.db.Query(ctx, listJobs)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []Job{}
-	for rows.Next() {
-		var i Job
-		if err := rows.Scan(
-			&i.ID,
-			&i.ClusterID,
-			&i.NodeID,
-			&i.StartedAt,
-			&i.FinishedAt,
-			&i.Status,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }
 
 const listJobsByCluster = `-- name: ListJobsByCluster :many

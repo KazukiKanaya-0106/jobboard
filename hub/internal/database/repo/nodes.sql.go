@@ -38,33 +38,15 @@ func (q *Queries) CreateNode(ctx context.Context, arg CreateNodeParams) (Node, e
 	return i, err
 }
 
-const deleteNode = `-- name: DeleteNode :exec
-DELETE FROM nodes
-WHERE id = $1
+const getNodeByWebhookSecretHash = `-- name: GetNodeByWebhookSecretHash :one
+SELECT id, cluster_id, node_name, webhook_secret_hash, current_job_id, created_at
+FROM nodes
+WHERE webhook_secret_hash = $1
+LIMIT 1
 `
 
-func (q *Queries) DeleteNode(ctx context.Context, id int64) error {
-	_, err := q.db.Exec(ctx, deleteNode, id)
-	return err
-}
-
-const deleteNodesByCluster = `-- name: DeleteNodesByCluster :exec
-DELETE FROM nodes
-WHERE cluster_id = $1
-`
-
-func (q *Queries) DeleteNodesByCluster(ctx context.Context, clusterID string) error {
-	_, err := q.db.Exec(ctx, deleteNodesByCluster, clusterID)
-	return err
-}
-
-const getNode = `-- name: GetNode :one
-SELECT id, cluster_id, node_name, webhook_secret_hash, current_job_id, created_at FROM nodes
-WHERE id = $1 LIMIT 1
-`
-
-func (q *Queries) GetNode(ctx context.Context, id int64) (Node, error) {
-	row := q.db.QueryRow(ctx, getNode, id)
+func (q *Queries) GetNodeByWebhookSecretHash(ctx context.Context, webhookSecretHash string) (Node, error) {
+	row := q.db.QueryRow(ctx, getNodeByWebhookSecretHash, webhookSecretHash)
 	var i Node
 	err := row.Scan(
 		&i.ID,
@@ -75,66 +57,11 @@ func (q *Queries) GetNode(ctx context.Context, id int64) (Node, error) {
 		&i.CreatedAt,
 	)
 	return i, err
-}
-
-const getNodeByClusterAndNodeId = `-- name: GetNodeByClusterAndNodeId :one
-SELECT id, cluster_id, node_name, webhook_secret_hash, current_job_id, created_at FROM nodes
-WHERE cluster_id = $1 AND node_name = $2 LIMIT 1
-`
-
-type GetNodeByClusterAndNodeIdParams struct {
-	ClusterID string `json:"cluster_id"`
-	NodeName  string `json:"node_name"`
-}
-
-func (q *Queries) GetNodeByClusterAndNodeId(ctx context.Context, arg GetNodeByClusterAndNodeIdParams) (Node, error) {
-	row := q.db.QueryRow(ctx, getNodeByClusterAndNodeId, arg.ClusterID, arg.NodeName)
-	var i Node
-	err := row.Scan(
-		&i.ID,
-		&i.ClusterID,
-		&i.NodeName,
-		&i.WebhookSecretHash,
-		&i.CurrentJobID,
-		&i.CreatedAt,
-	)
-	return i, err
-}
-
-const listNodes = `-- name: ListNodes :many
-SELECT id, cluster_id, node_name, webhook_secret_hash, current_job_id, created_at FROM nodes
-ORDER BY created_at DESC
-`
-
-func (q *Queries) ListNodes(ctx context.Context) ([]Node, error) {
-	rows, err := q.db.Query(ctx, listNodes)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []Node{}
-	for rows.Next() {
-		var i Node
-		if err := rows.Scan(
-			&i.ID,
-			&i.ClusterID,
-			&i.NodeName,
-			&i.WebhookSecretHash,
-			&i.CurrentJobID,
-			&i.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }
 
 const listNodesByCluster = `-- name: ListNodesByCluster :many
-SELECT id, cluster_id, node_name, webhook_secret_hash, current_job_id, created_at FROM nodes
+SELECT id, cluster_id, node_name, webhook_secret_hash, current_job_id, created_at
+FROM nodes
 WHERE cluster_id = $1
 ORDER BY node_name ASC
 `
@@ -180,32 +107,6 @@ type UpdateNodeCurrentJobParams struct {
 
 func (q *Queries) UpdateNodeCurrentJob(ctx context.Context, arg UpdateNodeCurrentJobParams) (Node, error) {
 	row := q.db.QueryRow(ctx, updateNodeCurrentJob, arg.ID, arg.CurrentJobID)
-	var i Node
-	err := row.Scan(
-		&i.ID,
-		&i.ClusterID,
-		&i.NodeName,
-		&i.WebhookSecretHash,
-		&i.CurrentJobID,
-		&i.CreatedAt,
-	)
-	return i, err
-}
-
-const updateNodeWebhookSecret = `-- name: UpdateNodeWebhookSecret :one
-UPDATE nodes
-SET webhook_secret_hash = $2
-WHERE id = $1
-RETURNING id, cluster_id, node_name, webhook_secret_hash, current_job_id, created_at
-`
-
-type UpdateNodeWebhookSecretParams struct {
-	ID                int64  `json:"id"`
-	WebhookSecretHash string `json:"webhook_secret_hash"`
-}
-
-func (q *Queries) UpdateNodeWebhookSecret(ctx context.Context, arg UpdateNodeWebhookSecretParams) (Node, error) {
-	row := q.db.QueryRow(ctx, updateNodeWebhookSecret, arg.ID, arg.WebhookSecretHash)
 	var i Node
 	err := row.Scan(
 		&i.ID,

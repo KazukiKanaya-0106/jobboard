@@ -2,10 +2,6 @@
 SELECT * FROM clusters
 WHERE id = $1 LIMIT 1;
 
--- name: ListClusters :many
-SELECT * FROM clusters
-ORDER BY created_at DESC;
-
 -- name: CreateCluster :one
 INSERT INTO clusters (
   id, password_hash

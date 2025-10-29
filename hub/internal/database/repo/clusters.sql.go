@@ -52,31 +52,6 @@ func (q *Queries) GetCluster(ctx context.Context, id string) (Cluster, error) {
 	return i, err
 }
 
-const listClusters = `-- name: ListClusters :many
-SELECT id, password_hash, created_at FROM clusters
-ORDER BY created_at DESC
-`
-
-func (q *Queries) ListClusters(ctx context.Context) ([]Cluster, error) {
-	rows, err := q.db.Query(ctx, listClusters)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []Cluster{}
-	for rows.Next() {
-		var i Cluster
-		if err := rows.Scan(&i.ID, &i.PasswordHash, &i.CreatedAt); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const updateCluster = `-- name: UpdateCluster :one
 UPDATE clusters
 SET password_hash = $2

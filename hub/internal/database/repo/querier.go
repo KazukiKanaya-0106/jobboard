@@ -13,26 +13,15 @@ type Querier interface {
 	CreateJob(ctx context.Context, arg CreateJobParams) (Job, error)
 	CreateNode(ctx context.Context, arg CreateNodeParams) (Node, error)
 	DeleteCluster(ctx context.Context, id string) error
-	DeleteJob(ctx context.Context, id int64) error
-	DeleteJobsByCluster(ctx context.Context, clusterID string) error
-	DeleteJobsByNode(ctx context.Context, nodeID int64) error
-	DeleteNode(ctx context.Context, id int64) error
-	DeleteNodesByCluster(ctx context.Context, clusterID string) error
 	GetCluster(ctx context.Context, id string) (Cluster, error)
-	GetJob(ctx context.Context, id int64) (Job, error)
 	GetJobByClusterAndJobId(ctx context.Context, arg GetJobByClusterAndJobIdParams) (Job, error)
-	GetNode(ctx context.Context, id int64) (Node, error)
-	GetNodeByClusterAndNodeId(ctx context.Context, arg GetNodeByClusterAndNodeIdParams) (Node, error)
-	ListClusters(ctx context.Context) ([]Cluster, error)
-	ListJobs(ctx context.Context) ([]Job, error)
+	GetNodeByWebhookSecretHash(ctx context.Context, webhookSecretHash string) (Node, error)
 	ListJobsByCluster(ctx context.Context, clusterID string) ([]Job, error)
 	ListJobsByNode(ctx context.Context, nodeID int64) ([]Job, error)
-	ListNodes(ctx context.Context) ([]Node, error)
 	ListNodesByCluster(ctx context.Context, clusterID string) ([]Node, error)
 	UpdateCluster(ctx context.Context, arg UpdateClusterParams) (Cluster, error)
 	UpdateJob(ctx context.Context, arg UpdateJobParams) (Job, error)
 	UpdateNodeCurrentJob(ctx context.Context, arg UpdateNodeCurrentJobParams) (Node, error)
-	UpdateNodeWebhookSecret(ctx context.Context, arg UpdateNodeWebhookSecretParams) (Node, error)
 }
 
 var _ Querier = (*Queries)(nil)
