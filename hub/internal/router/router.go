@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/kanaya/jobboard-hub/internal/database"
 	"github.com/kanaya/jobboard-hub/internal/database/repo"
@@ -14,6 +15,19 @@ import (
 func New(ctx context.Context, db *database.Database, jwtSecret []byte, tokenTTL time.Duration) *gin.Engine {
 	router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery())
+
+	router.Use(cors.New(cors.Config{
+		AllowOrigins: []string{
+			"http://localhost:5173",
+			"http://127.0.0.1:5173",
+		},
+		AllowMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders: []string{
+			"Origin", "Content-Type", "Accept",
+			"Authorization", "X-Requested-With",
+		},
+		AllowCredentials: true,
+	}))
 
 	queries := repo.New(db.Pool)
 

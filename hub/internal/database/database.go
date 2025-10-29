@@ -17,7 +17,6 @@ func New(ctx context.Context, cfg *config.DatabaseConfig) (*Database, error) {
 		return nil, err
 	}
 
-	// Test connection
 	if err := pool.Ping(ctx); err != nil {
 		pool.Close()
 		return nil, err
