@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -62,14 +63,42 @@ func Load(args []string) (Config, []string, error) {
 		return Config{}, warnings, errors.New("missing command to execute (provide arguments after --)")
 	}
 
-	slack := firstNonEmpty(*slackWebhook, getEnv(envSlackWebhookURL))
-
-}
-
-func getEnvOr(key string, defaultValue string) string {
-	value := os.Getenv(key)
-	if value == "" {
-		return defaultValue
+	slack := firstNonEmpty(*slackWebhook, os.Getenv(envSlackWebhookURL))
+	if strings.TrimSpace(slack) == "" {
+		warnings = append(warnings, "warning: slack webhook is not provided; aborting execution")
 	}
-	return value
+
+	baseURL := firstNonEmpty(*hubURL, os.Getenv(envHubURL), defaultHubURL)
+	nodeToken := firstNonEmpty(*nodeToken, os.Getenv(envNodeToken))
+
+	hubCfg := HubConfig{
+		Enabled:   true,
+		BaseURL:   baseURL,
+		NodeToken: nodeToken,
+		Timeout:   *timeout,
+	}
+
+	if trimmed := strings.TrimSpace(hubCfg.NodeToken); trimmed == "" {
+		hubCfg.Enabled = false
+		warnings = append(warnings, "warning: node token is not provided; hub integration is disabled")
+	}
+
+	cfg := Config{
+		Hub: hubCfg,
+		Slack: SlackConfig{
+			WebhookURL: slack,
+		},
+		Command: CommandConfig{
+			Args: cmdArgs,
+		},
+	}
+	return cfg, warnings, nil
+}
+func firstNonEmpty(values ...string) string {
+	for _, v := range values {
+		if v != "" {
+			return v
+		}
+	}
+	return ""
 }
