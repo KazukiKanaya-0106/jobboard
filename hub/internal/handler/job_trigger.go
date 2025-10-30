@@ -55,7 +55,7 @@ func (h *JobTriggerHandler) StartJob(c *gin.Context) {
 		return
 	}
 
-	var started interface{}
+	var started any
 	if req.StartedAt != nil {
 		started = timestamptz(*req.StartedAt)
 	}

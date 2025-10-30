@@ -1,2 +1,0 @@
-hub/ のnode_triggerを利用して、cli/ でhubへリクエスト and slackのwebhookで完了の通知を行う（webhookが環境変数にあれば）。このcliは引数に「python ~~~ 」みたいに実行コマンドを渡して、tagも引数にあればそれを利用してリクエストを送る。
-slack通知はhubに依存しない機能。

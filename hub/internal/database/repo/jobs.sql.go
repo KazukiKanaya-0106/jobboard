@@ -29,11 +29,11 @@ RETURNING id, cluster_id, node_id, started_at, finished_at, duration_hours, stat
 `
 
 type CreateJobParams struct {
-	ClusterID string      `json:"cluster_id"`
-	NodeID    int64       `json:"node_id"`
-	Column3   interface{} `json:"column_3"`
-	Column4   interface{} `json:"column_4"`
-	Tag       *string     `json:"tag"`
+	ClusterID string  `json:"cluster_id"`
+	NodeID    int64   `json:"node_id"`
+	Column3   any     `json:"column_3"`
+	Column4   any     `json:"column_4"`
+	Tag       *string `json:"tag"`
 }
 
 func (q *Queries) CreateJob(ctx context.Context, arg CreateJobParams) (Job, error) {

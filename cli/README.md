@@ -5,13 +5,13 @@ Hub の node trigger API を呼び出しつつ、任意コマンドの実行結�
 ## 使い方
 
 ```bash
-jobboard-cli [フラグ] -- <実行コマンド> [引数...]
+jobboard [フラグ] -- <実行コマンド> [引数...]
 ```
 
 例:
 
 ```bash
-jobboard-cli \
+jobboard \
   --hub-url http://localhost:8080 \
   --node-token abc123 \
   --tag nightly \
@@ -47,24 +47,8 @@ jobboard-cli \
 - Node token 未設定時は `warning` を表示し、Hub 連携をスキップします。
 - どちらも未設定の場合は `error` を表示し、終了する
 
-## 実装構成
-
-- `cli/cmd/jobboard/main.go`  
-  Hub/Slack クライアント呼び出し、コマンド実行を担当。
-
-
-- `cli/cmd/jobboard/main.go`  
-  フラグ解析 Hub/Slack などの Config の作成を担当。
-
-- `internal/hubclient`  
-  Hub の `/api/job-trigger/start` と `/finish` を叩く HTTP クライアント。`StartJob`, `FinishJob` を提供。
-
-- `internal/notify`  
-  Slack Webhook に POST を送る小さなクライアント。`Payload` 構造体と `SendSlack` を提供。
-
 ## 留意点
 
-- Hub API の仕様変更時は `internal/hubclient` のリクエスト/レスポンスを更新してください。
 - Slack 通知は Hub の成否にかかわらず必ず実行されます。
 - CLI の終了コードは実行コマンドに追従するため、ワークフローから呼び出す際はコマンドの終了コードを確認してください。
 
