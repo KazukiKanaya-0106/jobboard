@@ -1,10 +1,11 @@
 import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import AuthForm from "../components/AuthForm";
 import { login } from "../api";
 import type { AuthCredentials } from "../schemas";
 import { useAuth } from "../AuthContext";
+import { FORCED_LOGOUT_MESSAGE_KEY } from "../../../lib/apiCient";
 
 type LocationState = {
   from?: {
@@ -31,6 +32,14 @@ export default function LoginPage() {
       setApiError(error instanceof Error ? error.message : "ログインに失敗しました");
     },
   });
+
+  useEffect(() => {
+    const message = window.sessionStorage.getItem(FORCED_LOGOUT_MESSAGE_KEY);
+    if (message) {
+      setApiError(message);
+      window.sessionStorage.removeItem(FORCED_LOGOUT_MESSAGE_KEY);
+    }
+  }, []);
 
   return (
     <AuthForm

@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"github.com/joho/godotenv"
 	"github.com/kanaya/jobboard-cli/internal/app"
 	"github.com/kanaya/jobboard-cli/internal/config"
 	"github.com/kanaya/jobboard-cli/internal/hub"
@@ -16,6 +18,9 @@ import (
 )
 
 func main() {
+	if err := godotenv.Load(); err != nil && !errors.Is(err, os.ErrNotExist) {
+		fmt.Fprintf(os.Stderr, "warning: failed to load .env: %v\n", err)
+	}
 	config, warnings, err := config.Load(os.Args[1:])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)

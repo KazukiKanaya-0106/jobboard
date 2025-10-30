@@ -25,6 +25,7 @@ export default function JobsPage() {
     if (!auth) {
       throw new Error("Authentication is required to load jobs");
     }
+    console.log("Using auth:", auth);
     return auth;
   };
 

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { apiRequest } from "../../lib/api-client";
+import { apiRequest } from "../../lib/apiCient";
 import type { StoredAuth } from "../../lib/storage";
 import type { NodeDto, CreateNodeRequest } from "./schemas";
 import { nodeSchema } from "./schemas";

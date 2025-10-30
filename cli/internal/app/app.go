@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	statusSuccess = "success"
-	statusFailure = "failure"
+	statusCompleted = "completed"
+	statusFailed    = "failed"
 )
 
 type App struct {
@@ -56,9 +56,9 @@ func (app *App) Run(ctx context.Context) int {
 	}
 
 	finishedAt := time.Now()
-	status := statusSuccess
+	status := statusCompleted
 	if result.ExitCode != 0 || result.Error != nil {
-		status = statusFailure
+		status = statusFailed
 	}
 
 	if hubStarted {
@@ -69,7 +69,7 @@ func (app *App) Run(ctx context.Context) int {
 
 	if app.config.Slack.Enabled() {
 		var errorText string
-		if status == statusFailure {
+		if status == statusFailed {
 			switch {
 			case result.Error != nil:
 				errorText = result.Error.Error()

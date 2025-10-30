@@ -1,4 +1,4 @@
-import { apiRequest } from "../../lib/api-client";
+import { apiRequest } from "../../lib/apiCient";
 import type { StoredAuth } from "../../lib/storage";
 import type { AuthCredentials } from "./schemas";
 import { authResponseSchema } from "./schemas";

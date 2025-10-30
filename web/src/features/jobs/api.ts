@@ -1,20 +1,18 @@
-import { z } from "zod";
-import { apiRequest } from "../../lib/api-client";
+import { apiRequest } from "../../lib/apiCient";
 import type { StoredAuth } from "../../lib/storage";
 import type { JobDto } from "./schemas";
-import { jobSchema } from "./schemas";
+import { jobsArraySchema } from "./schemas";
 
 export type Job = {
   id: number;
+  clusterId: string;
   nodeId: number;
   status: string;
-  startedAt: Date | null;
-  finishedAt: Date | null;
-  durationHours: number | null;
-  tag: string | null;
+  startedAt: Date;
+  finishedAt: Date | null | undefined;
+  durationHours: number | null | undefined;
+  tag: string | null | undefined;
 };
-
-const jobsArraySchema = z.array(jobSchema);
 
 function parseDuration(value: JobDto["duration_hours"]): number | null {
   if (value === null || value === undefined) return null;
@@ -37,6 +35,7 @@ function parseDuration(value: JobDto["duration_hours"]): number | null {
 function mapJob(dto: JobDto): Job {
   return {
     id: dto.id,
+    clusterId: dto.cluster_id,
     nodeId: dto.node_id,
     status: dto.status,
     startedAt: dto.started_at,
@@ -51,6 +50,8 @@ export async function fetchJobs(auth: StoredAuth): Promise<Job[]> {
     method: "GET",
     token: auth.token,
   });
+  console.log("Raw job DTOs:", dto);
   const jobs = jobsArraySchema.parse(dto);
+  console.log("Fetched jobs:", jobs);
   return jobs.map(mapJob);
 }

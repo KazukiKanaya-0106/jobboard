@@ -25,6 +25,7 @@ func NewJobHandler(queries repo.Querier) *JobHandler {
 
 type jobResponse struct {
 	ID            int64      `json:"id"`
+	ClusterID     string     `json:"cluster_id"`
 	NodeID        int64      `json:"node_id"`
 	Status        string     `json:"status"`
 	StartedAt     *time.Time `json:"started_at,omitempty"`
@@ -125,6 +126,7 @@ func timestamptzPtr(ts pgtype.Timestamptz) *time.Time {
 func jobToResponse(job repo.Job) jobResponse {
 	return jobResponse{
 		ID:            job.ID,
+		ClusterID:     job.ClusterID,
 		NodeID:        job.NodeID,
 		Status:        job.Status,
 		StartedAt:     timestamptzPtr(job.StartedAt),

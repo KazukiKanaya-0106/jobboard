@@ -12,11 +12,14 @@ export const jobSchema = z.object({
   id: z.number(),
   cluster_id: z.string(),
   node_id: z.number(),
-  started_at: z.coerce.date().nullable(),
-  finished_at: z.coerce.date().nullable(),
+  started_at: z.coerce.date(),
+  finished_at: z.coerce.date().nullable().optional(),
   status: z.string(),
   duration_hours: durationSchema.optional(),
-  tag: z.string().nullable(),
+  tag: z.string().nullable().optional(),
 });
 
 export type JobDto = z.infer<typeof jobSchema>;
+
+export const jobsArraySchema = z.array(jobSchema);
+export type JobsArrayDto = z.infer<typeof jobsArraySchema>;
