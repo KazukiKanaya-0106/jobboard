@@ -2,6 +2,7 @@
 
 長時間稼働する機械学習・データ処理ジョブを気軽に監視し、完了時には Slack へ通知できる統合ツールです。Docker Compose ひとつで API / ダッシュボード / CLI をまとめて立ち上げられるので、ポートフォリオとしても程よく「触ってもらえる」体験を提供します。
 
+
 > **主な特徴**
 > - **手軽さ最優先**：`docker compose up --build` で全スタックが起動。  
 > - **ジョブ状態の可視化**：開始・終了時刻、 ExitCode、 stderr（失敗時のみ）を保存し、 Slack に結果を通知。  
@@ -18,7 +19,6 @@
 5. [Web UI の主な機能](#web-ui-の主な機能)  
 6. [データベース設計](#データベース設計)  
 7. [環境変数と設定](#環境変数と設定)  
-8. [今後の展望](#今後の展望)  
 
 ---
 
@@ -33,9 +33,11 @@
 
 このリポジトリは「クローンしたらすぐ試せる」を重視しており、デモ用途にも最適です。
 
+
 ---
 
 ## アーキテクチャ
+
 ```mermaid
 flowchart LR
     subgraph CLI
@@ -101,8 +103,54 @@ docker compose up --build
 3. ノード作成 → CLI からジョブ実行 → ジョブ履歴で進捗確認  
 4. 失敗ジョブのステータスバッジをクリックするとエラー詳細モーダルが表示されます  
 
-> :camera: スクリーンショットを追加する場合は `docs/images/` に配置し、README 内のリンクを書き換えてください。  
-> 例: `![Dashboard](docs/images/dashboard.png)`
+### 4. 使用手順まとめ
+1. **クラスターを作成**  
+  ログイン画面からクラスター ID とパスワードを登録し、初期ユーザーを用意します。
+2. **ノードを作成**  
+  ダッシュボードでノードを追加し、発行されるトークンをコピーします。
+3. **CLI でジョブを実行**  
+  例:  
+  ```bash
+  # node-token、hub-url、slack-webhook などは .env で設定することも可能（今回は引数で指定）。
+  ./cli/bin/jobboard \
+    --node-token <発行されたトークン> \
+    --hub-url <Hub の URL> \
+    --slack-webhook <Slack Webhook> \
+    -- echo "jobboard ok"
+
+  ./cli/bin/jobboard \
+    --node-token <発行されたトークン> \
+    --hub-url <Hub の URL> \
+    --slack-webhook <Slack Webhook> \
+    -- ech "jobboard ok"   # タイプミスで失敗
+  ```
+4. **ジョブ結果を確認**  
+   テーブルで `ID:1` が成功、`ID:2` が失敗になり、失敗行をクリックするとエラー詳細モーダルで原因を確認できます。
+5. **Slack 通知を受け取る**  
+   Slack Webhook を設定していれば、成功・失敗がそれぞれ通知されます（例: `assets/image_4.png`）。
+<p align="center">
+  <img src="assets/image_0.png" alt="Cluster Creation" width="720" />
+</p>
+
+<p align="center">
+  <img src="assets/image_1.png" alt="Node Creation" width="720" />
+</p>
+
+<p align="center">
+  <img src="assets/image_2.png" alt="Token Copy" width="720" />
+</p>
+
+<p align="center">
+  <img src="assets/image_3.png" alt="Job Execution" width="720" />
+</p>
+
+<p align="center">
+  <img src="assets/image_4.png" alt="Error Details" width="720" />
+</p>
+
+<p align="center">
+  <img src="assets/image_5.png" alt="Slack Notification" width="450" />
+</p>
 
 ---
 

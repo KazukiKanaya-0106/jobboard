@@ -46,7 +46,7 @@ func (n *Notifier) Notify(ctx context.Context, payload Payload) error {
 	}
 
 	icon := ":white_check_mark:"
-	if payload.Status != "failure" {
+	if payload.Status == "failed" {
 		icon = ":x:"
 	}
 
