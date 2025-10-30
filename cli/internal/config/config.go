@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 	"time"
@@ -14,6 +15,7 @@ type Config struct {
 	Hub       HubConfig
 	Slack     SlackConfig
 	Execution ExecutionConfig
+	Time      TimeConfig
 }
 
 type HubConfig struct {
@@ -30,6 +32,11 @@ type SlackConfig struct {
 
 type ExecutionConfig struct {
 	Command []string
+}
+
+type TimeConfig struct {
+	Name     string
+	Location *time.Location
 }
 
 func Load(args []string) (*Config, []string, error) {
@@ -65,6 +72,8 @@ func Load(args []string) (*Config, []string, error) {
 		return nil, nil, errors.New("execution command is required; pass it after `--`")
 	}
 
+	tzName, tzLocation := loadLocation()
+
 	cfg := &Config{
 		Hub: HubConfig{
 			URL:       *hubURL,
@@ -78,6 +87,10 @@ func Load(args []string) (*Config, []string, error) {
 		},
 		Execution: ExecutionConfig{
 			Command: command,
+		},
+		Time: TimeConfig{
+			Name:     tzName,
+			Location: tzLocation,
 		},
 	}
 
@@ -122,4 +135,21 @@ func envDuration(key string, fallback time.Duration) time.Duration {
 		}
 	}
 	return fallback
+}
+
+func loadLocation() (string, *time.Location) {
+	tz := envString("TIMEZONE", "")
+	if tz == "" {
+		tz = envString("TZ", "")
+	}
+	if tz == "" {
+		tz = "Asia/Tokyo"
+	}
+
+	loc, err := time.LoadLocation(tz)
+	if err != nil {
+		log.Printf("warn: failed to load timezone %q: %v; falling back to UTC", tz, err)
+		return tz, time.UTC
+	}
+	return tz, loc
 }

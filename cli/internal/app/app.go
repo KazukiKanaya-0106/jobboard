@@ -35,7 +35,13 @@ func New(config *config.Config, hub *hub.Client, slack *slack.Notifier, runner *
 }
 
 func (app *App) Run(ctx context.Context) (exitCode int) {
-	startedAt := time.Now()
+	loc := app.config.Time.Location
+	if loc == nil {
+		loc = time.Local
+	}
+
+	startedRaw := time.Now()
+	startedAt := startedRaw.In(loc)
 	var (
 		hubStarted bool
 		result     *runner.Result
@@ -44,8 +50,9 @@ func (app *App) Run(ctx context.Context) (exitCode int) {
 	)
 
 	defer func() {
-		finishedAt := time.Now()
-		duration := finishedAt.Sub(startedAt)
+		finishedRaw := time.Now()
+		finishedAt := finishedRaw.In(loc)
+		duration := finishedRaw.Sub(startedRaw)
 
 		trimmedError := strings.TrimSpace(errorText)
 		var hubErrorText *string

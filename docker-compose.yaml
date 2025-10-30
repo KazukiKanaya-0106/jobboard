@@ -30,8 +30,12 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       DB_NAME: ${POSTGRES_DB}
       GIN_MODE: ${GIN_MODE}
+      PORT: ${PORT}
+      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET}
+      AUTH_TOKEN_TTL: ${AUTH_TOKEN_TTL}
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS}
     ports:
-      - "8080:8080"
+      - "${PORT}:${PORT}"
     volumes:
       - ./hub:/app
       - go_modules_hub:/go/pkg/mod
