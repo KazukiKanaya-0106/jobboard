@@ -54,9 +54,10 @@ type finishRequest struct {
 	Status        string    `json:"status"`
 	FinishedAt    time.Time `json:"finished_at"`
 	DurationHours float64   `json:"duration_hours"`
+	ErrorText     *string   `json:"error_text,omitempty"`
 }
 
-func (c *Client) Finish(ctx context.Context, status string, finishedAt time.Time, duration time.Duration) error {
+func (c *Client) Finish(ctx context.Context, status string, finishedAt time.Time, duration time.Duration, errorText *string) error {
 	if !c.Enabled() {
 		return nil
 	}
@@ -66,6 +67,7 @@ func (c *Client) Finish(ctx context.Context, status string, finishedAt time.Time
 		Status:        status,
 		FinishedAt:    finishedAt,
 		DurationHours: duration.Hours(),
+		ErrorText:     errorText,
 	}
 
 	return c.post(ctx, "/api/job-trigger/finish", payload)

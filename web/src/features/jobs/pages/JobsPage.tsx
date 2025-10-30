@@ -2,8 +2,13 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import {
   Alert,
   Box,
+  Button,
   Chip,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
   Paper,
   Stack,
@@ -13,11 +18,13 @@ import {
   TableHead,
   TableRow,
   Toolbar,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { useAuth } from "../../auth/AuthContext";
-import { fetchJobs } from "../api";
+import { fetchJobs, type Job } from "../api";
 
 type StatusKey = "running" | "completed" | "failed" | "other";
 
@@ -44,7 +51,7 @@ const STATUS_STYLES: Record<StatusKey, { label: string; bgcolor: string; color: 
   },
 };
 
-function StatusChip({ status }: { status: string }) {
+function StatusChip({ status, onClick }: { status: string; onClick?: () => void }) {
   const normalized = status.toLowerCase();
   let key: StatusKey = "other";
 
@@ -64,13 +71,17 @@ function StatusChip({ status }: { status: string }) {
         textTransform: "capitalize",
         bgcolor: config.bgcolor,
         color: config.color,
+        cursor: onClick ? "pointer" : "default",
       }}
+      onClick={onClick}
+      clickable={Boolean(onClick)}
     />
   );
 }
 
 export default function JobsPage() {
   const { auth } = useAuth();
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
 
   const requireAuth = () => {
     if (!auth) {
@@ -85,6 +96,8 @@ export default function JobsPage() {
     queryFn: () => fetchJobs(requireAuth()),
     enabled: Boolean(auth?.token),
   });
+
+  const handleCloseErrorDialog = () => setSelectedJob(null);
 
   return (
     <Paper elevation={0} sx={{ p: 3 }}>
@@ -118,19 +131,32 @@ export default function JobsPage() {
           </TableHead>
           <TableBody>
             {jobsQuery.data && jobsQuery.data.length > 0 ? (
-              jobsQuery.data.map((job) => (
+              jobsQuery.data.map((job) => {
+                const isFailed = job.status.toLowerCase() === "failed";
+                const statusChip = (
+                  <StatusChip status={job.status} onClick={isFailed ? () => setSelectedJob(job) : undefined} />
+                );
+
+                return (
                   <TableRow key={job.id} hover>
                     <TableCell>{job.id}</TableCell>
                     <TableCell>{job.nodeId}</TableCell>
                     <TableCell>
-                      <StatusChip status={job.status} />
+                      {isFailed ? (
+                        <Tooltip title="エラー詳細を表示" arrow>
+                          <span style={{ display: "inline-flex" }}>{statusChip}</span>
+                        </Tooltip>
+                      ) : (
+                        statusChip
+                      )}
                     </TableCell>
                     <TableCell>{job.startedAt ? job.startedAt.toLocaleString() : "-"}</TableCell>
                     <TableCell>{job.finishedAt ? job.finishedAt.toLocaleString() : "-"}</TableCell>
-                    <TableCell>{job.durationHours ? job.durationHours.toFixed(2) : "-"}</TableCell>
-                  <TableCell>{job.tag ?? "-"}</TableCell>
-                </TableRow>
-              ))
+                    <TableCell>{job.durationHours != null ? job.durationHours.toFixed(2) : "-"}</TableCell>
+                    <TableCell>{job.tag ?? "-"}</TableCell>
+                  </TableRow>
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell colSpan={7}>
@@ -141,6 +167,30 @@ export default function JobsPage() {
           </TableBody>
         </Table>
       )}
+
+      <Dialog open={Boolean(selectedJob)} onClose={handleCloseErrorDialog} fullWidth maxWidth="sm">
+        <DialogTitle>ジョブ{selectedJob ? ` #${selectedJob.id}` : ""}のエラー詳細</DialogTitle>
+        <DialogContent dividers>
+          {selectedJob?.errorText ? (
+            <Box
+              component="pre"
+              sx={{
+                whiteSpace: "pre-wrap",
+                fontFamily: "Roboto Mono, monospace",
+                fontSize: 14,
+                m: 0,
+              }}
+            >
+              {selectedJob.errorText}
+            </Box>
+          ) : (
+            <Typography color="text.secondary">エラー詳細は記録されていません。</Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseErrorDialog}>閉じる</Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   );
 }

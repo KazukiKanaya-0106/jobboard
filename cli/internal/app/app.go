@@ -61,25 +61,32 @@ func (app *App) Run(ctx context.Context) int {
 		status = statusFailed
 	}
 
+	var errorText string
+	var hubErrorText *string
+	if status == statusFailed {
+		switch {
+		case result.Error != nil:
+			errorText = result.Error.Error()
+		case result.Stderr != "":
+			errorText = result.Stderr
+		default:
+			errorText = fmt.Sprintf("Exit code: %d", result.ExitCode)
+		}
+
+		errorText = strings.TrimSpace(errorText)
+		if errorText != "" {
+			msg := errorText
+			hubErrorText = &msg
+		}
+	}
+
 	if hubStarted {
-		if err := app.hub.Finish(ctx, status, finishedAt, finishedAt.Sub(startedAt)); err != nil {
+		if err := app.hub.Finish(ctx, status, finishedAt, finishedAt.Sub(startedAt), hubErrorText); err != nil {
 			fmt.Fprintf(os.Stderr, "warning: failed to notify Hub finish: %v\n", err)
 		}
 	}
 
 	if app.config.Slack.Enabled() {
-		var errorText string
-		if status == statusFailed {
-			switch {
-			case result.Error != nil:
-				errorText = result.Error.Error()
-			case result.Stderr != "":
-				errorText = result.Stderr
-			default:
-				errorText = fmt.Sprintf("Exit code: %d", result.ExitCode)
-			}
-		}
-
 		payload := slack.Payload{
 			Command:    strings.Join(app.config.Execution.Command, " "),
 			Tag:        app.config.Hub.Tag,

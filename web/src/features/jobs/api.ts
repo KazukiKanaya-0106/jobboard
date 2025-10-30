@@ -8,10 +8,11 @@ export type Job = {
   clusterId: string;
   nodeId: number;
   status: string;
-  startedAt: Date;
-  finishedAt: Date | null | undefined;
-  durationHours: number | null | undefined;
-  tag: string | null | undefined;
+  startedAt: Date | null;
+  finishedAt: Date | null;
+  durationHours: number | null;
+  tag: string | null;
+  errorText: string | null;
 };
 
 function parseDuration(value: JobDto["duration_hours"]): number | null {
@@ -38,10 +39,11 @@ function mapJob(dto: JobDto): Job {
     clusterId: dto.cluster_id,
     nodeId: dto.node_id,
     status: dto.status,
-    startedAt: dto.started_at,
-    finishedAt: dto.finished_at,
+    startedAt: dto.started_at ?? null,
+    finishedAt: dto.finished_at ?? null,
     durationHours: parseDuration(dto.duration_hours),
     tag: dto.tag ?? null,
+    errorText: dto.error_text ?? null,
   };
 }
 

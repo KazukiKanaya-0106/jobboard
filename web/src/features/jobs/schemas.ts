@@ -17,6 +17,7 @@ export const jobSchema = z.object({
   status: z.string(),
   duration_hours: durationSchema.optional(),
   tag: z.string().nullable().optional(),
+  error_text: z.string().nullable().optional(),
 });
 
 export type JobDto = z.infer<typeof jobSchema>;

@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS jobs (
     duration_hours INTERVAL,
     status VARCHAR(16) NOT NULL DEFAULT 'running',
     tag VARCHAR(128),
+    error_text TEXT,
     CONSTRAINT jobs_status_check CHECK (status IN ('running', 'completed', 'failed'))
 );
 

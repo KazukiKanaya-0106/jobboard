@@ -32,6 +32,7 @@ type finishJobRequest struct {
 	Status        string     `json:"status" binding:"omitempty,oneof=completed failed"`
 	FinishedAt    *time.Time `json:"finished_at"`
 	DurationHours *float64   `json:"duration_hours"`
+	ErrorText     *string    `json:"error_text"`
 }
 
 type JobTriggerResponse struct {
@@ -124,6 +125,7 @@ func (h *JobTriggerHandler) FinishJob(c *gin.Context) {
 		FinishedAt:    timestamptz(finishedAt),
 		Status:        status,
 		DurationHours: duration,
+		ErrorText:     req.ErrorText,
 	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update job"})

@@ -34,6 +34,7 @@ SET started_at  = COALESCE($2, started_at),
     finished_at = COALESCE($3, finished_at),
     status      = COALESCE($4, status),
     tag         = COALESCE($5, tag),
-    duration_hours = COALESCE($6, duration_hours)
+    duration_hours = COALESCE($6, duration_hours),
+    error_text = $7
 WHERE id = $1
 RETURNING *;

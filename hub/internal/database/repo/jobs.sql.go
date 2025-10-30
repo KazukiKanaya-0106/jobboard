@@ -25,7 +25,7 @@ INSERT INTO jobs (
     COALESCE($4, 'running'),
     $5
 )
-RETURNING id, cluster_id, node_id, started_at, finished_at, duration_hours, status, tag
+RETURNING id, cluster_id, node_id, started_at, finished_at, duration_hours, status, tag, error_text
 `
 
 type CreateJobParams struct {
@@ -54,12 +54,13 @@ func (q *Queries) CreateJob(ctx context.Context, arg CreateJobParams) (Job, erro
 		&i.DurationHours,
 		&i.Status,
 		&i.Tag,
+		&i.ErrorText,
 	)
 	return i, err
 }
 
 const getJobByClusterAndJobID = `-- name: GetJobByClusterAndJobID :one
-SELECT id, cluster_id, node_id, started_at, finished_at, duration_hours, status, tag FROM jobs
+SELECT id, cluster_id, node_id, started_at, finished_at, duration_hours, status, tag, error_text FROM jobs
 WHERE cluster_id = $1 AND id = $2 LIMIT 1
 `
 
@@ -80,12 +81,13 @@ func (q *Queries) GetJobByClusterAndJobID(ctx context.Context, arg GetJobByClust
 		&i.DurationHours,
 		&i.Status,
 		&i.Tag,
+		&i.ErrorText,
 	)
 	return i, err
 }
 
 const listJobsByCluster = `-- name: ListJobsByCluster :many
-SELECT id, cluster_id, node_id, started_at, finished_at, duration_hours, status, tag FROM jobs
+SELECT id, cluster_id, node_id, started_at, finished_at, duration_hours, status, tag, error_text FROM jobs
 WHERE cluster_id = $1
 ORDER BY started_at DESC, id DESC
 `
@@ -108,6 +110,7 @@ func (q *Queries) ListJobsByCluster(ctx context.Context, clusterID string) ([]Jo
 			&i.DurationHours,
 			&i.Status,
 			&i.Tag,
+			&i.ErrorText,
 		); err != nil {
 			return nil, err
 		}
@@ -120,7 +123,7 @@ func (q *Queries) ListJobsByCluster(ctx context.Context, clusterID string) ([]Jo
 }
 
 const listJobsByNode = `-- name: ListJobsByNode :many
-SELECT id, cluster_id, node_id, started_at, finished_at, duration_hours, status, tag FROM jobs
+SELECT id, cluster_id, node_id, started_at, finished_at, duration_hours, status, tag, error_text FROM jobs
 WHERE node_id = $1
 ORDER BY started_at DESC, id DESC
 `
@@ -143,6 +146,7 @@ func (q *Queries) ListJobsByNode(ctx context.Context, nodeID int64) ([]Job, erro
 			&i.DurationHours,
 			&i.Status,
 			&i.Tag,
+			&i.ErrorText,
 		); err != nil {
 			return nil, err
 		}
@@ -160,9 +164,10 @@ SET started_at  = COALESCE($2, started_at),
     finished_at = COALESCE($3, finished_at),
     status      = COALESCE($4, status),
     tag         = COALESCE($5, tag),
-    duration_hours = COALESCE($6, duration_hours)
+    duration_hours = COALESCE($6, duration_hours),
+    error_text = $7
 WHERE id = $1
-RETURNING id, cluster_id, node_id, started_at, finished_at, duration_hours, status, tag
+RETURNING id, cluster_id, node_id, started_at, finished_at, duration_hours, status, tag, error_text
 `
 
 type UpdateJobParams struct {
@@ -172,6 +177,7 @@ type UpdateJobParams struct {
 	Status        string             `json:"status"`
 	Tag           *string            `json:"tag"`
 	DurationHours pgtype.Interval    `json:"duration_hours"`
+	ErrorText     *string            `json:"error_text"`
 }
 
 func (q *Queries) UpdateJob(ctx context.Context, arg UpdateJobParams) (Job, error) {
@@ -182,6 +188,7 @@ func (q *Queries) UpdateJob(ctx context.Context, arg UpdateJobParams) (Job, erro
 		arg.Status,
 		arg.Tag,
 		arg.DurationHours,
+		arg.ErrorText,
 	)
 	var i Job
 	err := row.Scan(
@@ -193,6 +200,7 @@ func (q *Queries) UpdateJob(ctx context.Context, arg UpdateJobParams) (Job, erro
 		&i.DurationHours,
 		&i.Status,
 		&i.Tag,
+		&i.ErrorText,
 	)
 	return i, err
 }

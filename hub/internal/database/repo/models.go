@@ -23,6 +23,7 @@ type Job struct {
 	DurationHours pgtype.Interval    `json:"duration_hours"`
 	Status        string             `json:"status"`
 	Tag           *string            `json:"tag"`
+	ErrorText     *string            `json:"error_text"`
 }
 
 type Node struct {

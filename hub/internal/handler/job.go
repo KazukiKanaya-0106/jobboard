@@ -32,6 +32,7 @@ type jobResponse struct {
 	FinishedAt    *time.Time `json:"finished_at,omitempty"`
 	DurationHours *float64   `json:"duration_hours,omitempty"`
 	Tag           *string    `json:"tag,omitempty"`
+	ErrorText     *string    `json:"error_text,omitempty"`
 }
 
 func (h *JobHandler) List(c *gin.Context) {
@@ -133,5 +134,6 @@ func jobToResponse(job repo.Job) jobResponse {
 		FinishedAt:    timestamptzPtr(job.FinishedAt),
 		DurationHours: intervalToHours(job.DurationHours),
 		Tag:           job.Tag,
+		ErrorText:     job.ErrorText,
 	}
 }
