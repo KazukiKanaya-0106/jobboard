@@ -34,7 +34,7 @@ jobboard-cli \
 ## 動作フロー
 
 1. フラグと環境変数を解決。Slack Webhook が未設定なら警告を出したうえでエラー終了します。
-2. Slack Webhook が設定され、Node token が無い場合は `warning` を出し、Hub 連携をスキップして Slack 通知のみ行います。
+2. Slack Webhook が設定され、Node token が無い場合は `warning` を出し、Hub 連携をスキップして Slack 通知のみ行います。逆に Node token が設定され、Slack Webhook がない場合は `warning` を出し、Slack 通知をスキップして Hub 連携 のみ行い、どちらも設定されていない場合はエラーを出します。
 3. Node token がある場合は Hub `/api/job-trigger/start` を呼び出し (`node_token`, `tag`, `started_at`)。
 4. `--` 以降で指定したコマンドを実行し、終了コード・標準出力/標準エラーをそのまま返します。
 5. Hub で開始済みの場合は `/api/job-trigger/finish` を呼び出し (`node_token`, `status`, `finished_at`, `duration_hours`)。
@@ -45,11 +45,16 @@ jobboard-cli \
 - Hub 呼び出しエラーや Slack 送信エラーは標準エラーに詳細を出し、CLI は実行コマンドの終了コードで終了します。
 - Slack Webhook 未設定時は `warning` を表示後に即終了します。
 - Node token 未設定時は `warning` を表示し、Hub 連携をスキップします。
+- どちらも未設定の場合は `error` を表示し、終了する
 
 ## 実装構成
 
-- `cli/cmd/jobboard-cli/main.go`  
-  フラグ解析、Hub/Slack クライアント呼び出し、コマンド実行を担当。
+- `cli/cmd/jobboard/main.go`  
+  Hub/Slack クライアント呼び出し、コマンド実行を担当。
+
+
+- `cli/cmd/jobboard/main.go`  
+  フラグ解析 Hub/Slack などの Config の作成を担当。
 
 - `internal/hubclient`  
   Hub の `/api/job-trigger/start` と `/finish` を叩く HTTP クライアント。`StartJob`, `FinishJob` を提供。
