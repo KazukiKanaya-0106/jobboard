@@ -67,7 +67,7 @@ services:
   db     # PostgreSQL 16
   hub    # Gin + Air (開発用ホットリロード) + 自動マイグレーション
   cli    # Go toolchain。起動時に bin/jobboard をビルド
-  web    # Vite 開発サーバ (npm)
+  web    # Vite 開発サーバ (pnpm)
 ```
 
 Hub コンテナは起動時に `go run ./cmd/migrate --cmd up` を実行し、その後 Air で API サーバを常駐させます。CLI コンテナは `docker compose up` 時に `/app/bin/jobboard` を生成するため、ローカルでそのまま利用可能です。

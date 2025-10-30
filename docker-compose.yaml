@@ -30,12 +30,12 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       DB_NAME: ${POSTGRES_DB}
       GIN_MODE: ${GIN_MODE}
-      PORT: ${PORT}
+      PORT: ${HUB_PORT}
       AUTH_JWT_SECRET: ${AUTH_JWT_SECRET}
       AUTH_TOKEN_TTL: ${AUTH_TOKEN_TTL}
       RUN_MIGRATIONS: ${RUN_MIGRATIONS}
     ports:
-      - "${PORT}:${PORT}"
+      - "${HUB_PORT}:${HUB_PORT}"
     volumes:
       - ./hub:/app
       - go_modules_hub:/go/pkg/mod
@@ -63,6 +63,24 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    stdin_open: true
+    tty: true
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: jobboard-web
+    environment:
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://hub:${HUB_PORT}}
+      WEB_PORT: "${WEB_PORT}"
+    volumes:
+      - ./web:/app
+    ports:
+      - "${WEB_PORT}:${WEB_PORT}"
+    depends_on:
+      hub:
+        condition: service_started
     stdin_open: true
     tty: true
 
