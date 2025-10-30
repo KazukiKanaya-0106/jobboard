@@ -34,9 +34,65 @@ func New(config *config.Config, hub *hub.Client, slack *slack.Notifier, runner *
 	}
 }
 
-func (app *App) Run(ctx context.Context) int {
+func (app *App) Run(ctx context.Context) (exitCode int) {
 	startedAt := time.Now()
-	var hubStarted bool
+	var (
+		hubStarted bool
+		result     *runner.Result
+		status     = statusCompleted
+		errorText  string
+	)
+
+	defer func() {
+		finishedAt := time.Now()
+		duration := finishedAt.Sub(startedAt)
+
+		trimmedError := strings.TrimSpace(errorText)
+		var hubErrorText *string
+		if trimmedError != "" {
+			hubErrorText = &trimmedError
+		}
+
+		if hubStarted {
+			finishCtx := context.Background()
+			if timeout := app.config.Hub.Timeout; timeout > 0 {
+				var cancel context.CancelFunc
+				finishCtx, cancel = context.WithTimeout(finishCtx, timeout)
+				defer cancel()
+			}
+			if err := app.hub.Finish(finishCtx, status, finishedAt, duration, hubErrorText); err != nil {
+				fmt.Fprintf(os.Stderr, "warning: failed to notify Hub finish: %v\n", err)
+			}
+		}
+
+		if app.config.Slack.Enabled() {
+			slackCtx := context.Background()
+			if timeout := app.config.Slack.Timeout; timeout > 0 {
+				var cancel context.CancelFunc
+				slackCtx, cancel = context.WithTimeout(slackCtx, timeout)
+				defer cancel()
+			}
+
+			payload := slack.Payload{
+				Command:    strings.Join(app.config.Execution.Command, " "),
+				Tag:        app.config.Hub.Tag,
+				StartedAt:  startedAt,
+				FinishedAt: finishedAt,
+				Duration:   duration,
+				Status:     status,
+				ExitCode:   exitCode,
+				Error:      trimmedError,
+			}
+
+			if err := app.slack.Notify(slackCtx, payload); err != nil {
+				fmt.Fprintf(os.Stderr, "warning: failed to send Slack notification: %v\n", err)
+			}
+		}
+
+		if status == statusFailed && exitCode == 0 {
+			exitCode = 1
+		}
+	}()
 
 	if app.config.Hub.Enabled() {
 		if err := app.hub.Start(ctx, startedAt); err != nil {
@@ -46,62 +102,34 @@ func (app *App) Run(ctx context.Context) int {
 		}
 	}
 
-	result, runErr := app.runner.Run(ctx, app.config.Execution.Command)
-	if runErr != nil && result == nil {
+	res, runErr := app.runner.Run(ctx, app.config.Execution.Command)
+	if runErr != nil && res == nil {
 		fmt.Fprintf(os.Stderr, "error: failed to execute command: %v\n", runErr)
-		result = &runner.Result{ExitCode: 1, Error: runErr}
+		res = &runner.Result{ExitCode: 1, Error: runErr}
 	}
-	if result == nil {
-		result = &runner.Result{ExitCode: 1}
+	if res == nil {
+		res = &runner.Result{ExitCode: 1}
 	}
+	result = res
 
-	finishedAt := time.Now()
-	status := statusCompleted
-	if result.ExitCode != 0 || result.Error != nil {
+	exitCode = result.ExitCode
+	if result.ExitCode != 0 || result.Error != nil || ctx.Err() != nil {
 		status = statusFailed
-	}
-
-	var errorText string
-	var hubErrorText *string
-	if status == statusFailed {
 		switch {
 		case result.Error != nil:
 			errorText = result.Error.Error()
 		case result.Stderr != "":
 			errorText = result.Stderr
-		default:
-			errorText = fmt.Sprintf("Exit code: %d", result.ExitCode)
-		}
-
-		errorText = strings.TrimSpace(errorText)
-		if errorText != "" {
-			msg := errorText
-			hubErrorText = &msg
 		}
 	}
 
-	if hubStarted {
-		if err := app.hub.Finish(ctx, status, finishedAt, finishedAt.Sub(startedAt), hubErrorText); err != nil {
-			fmt.Fprintf(os.Stderr, "warning: failed to notify Hub finish: %v\n", err)
+	if ctx.Err() != nil {
+		if errorText == "" {
+			errorText = fmt.Sprintf("terminated by signal: %v", ctx.Err())
 		}
+	} else if status == statusFailed && errorText == "" {
+		errorText = fmt.Sprintf("Exit code: %d", result.ExitCode)
 	}
 
-	if app.config.Slack.Enabled() {
-		payload := slack.Payload{
-			Command:    strings.Join(app.config.Execution.Command, " "),
-			Tag:        app.config.Hub.Tag,
-			StartedAt:  startedAt,
-			FinishedAt: finishedAt,
-			Duration:   finishedAt.Sub(startedAt),
-			Status:     status,
-			ExitCode:   result.ExitCode,
-			Error:      errorText,
-		}
-
-		if err := app.slack.Notify(ctx, payload); err != nil {
-			fmt.Fprintf(os.Stderr, "warning: failed to send Slack notification: %v\n", err)
-		}
-	}
-
-	return result.ExitCode
+	return exitCode
 }
