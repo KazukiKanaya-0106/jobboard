@@ -82,6 +82,7 @@ function StatusChip({ status, onClick }: { status: string; onClick?: () => void 
 export default function JobsPage() {
   const { auth } = useAuth();
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [isErrorDialogOpen, setIsErrorDialogOpen] = useState(false);
 
   const requireAuth = () => {
     if (!auth) {
@@ -97,7 +98,14 @@ export default function JobsPage() {
     enabled: Boolean(auth?.token),
   });
 
-  const handleCloseErrorDialog = () => setSelectedJob(null);
+  const handleOpenErrorDialog = (job: Job) => {
+    setSelectedJob(job);
+    setIsErrorDialogOpen(true);
+  };
+
+  const handleCloseErrorDialog = () => {
+    setIsErrorDialogOpen(false);
+  };
 
   return (
     <Paper elevation={0} sx={{ p: 3 }}>
@@ -134,7 +142,7 @@ export default function JobsPage() {
               jobsQuery.data.map((job) => {
                 const isFailed = job.status.toLowerCase() === "failed";
                 const statusChip = (
-                  <StatusChip status={job.status} onClick={isFailed ? () => setSelectedJob(job) : undefined} />
+                  <StatusChip status={job.status} onClick={isFailed ? () => handleOpenErrorDialog(job) : undefined} />
                 );
 
                 return (
@@ -168,7 +176,15 @@ export default function JobsPage() {
         </Table>
       )}
 
-      <Dialog open={Boolean(selectedJob)} onClose={handleCloseErrorDialog} fullWidth maxWidth="sm">
+      <Dialog
+        open={isErrorDialogOpen}
+        onClose={handleCloseErrorDialog}
+        fullWidth
+        maxWidth="sm"
+        TransitionProps={{
+          onExited: () => setSelectedJob(null),
+        }}
+      >
         <DialogTitle>ジョブ{selectedJob ? ` #${selectedJob.id}` : ""}のエラー詳細</DialogTitle>
         <DialogContent dividers>
           {selectedJob?.errorText ? (
