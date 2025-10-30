@@ -2,6 +2,7 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import {
   Alert,
   Box,
+  Chip,
   CircularProgress,
   IconButton,
   Paper,
@@ -17,6 +18,56 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../../auth/AuthContext";
 import { fetchJobs } from "../api";
+
+type StatusKey = "running" | "completed" | "failed" | "other";
+
+const STATUS_STYLES: Record<StatusKey, { label: string; bgcolor: string; color: string }> = {
+  running: {
+    label: "running",
+    bgcolor: "info.light",
+    color: "info.contrastText",
+  },
+  completed: {
+    label: "completed",
+    bgcolor: "success.light",
+    color: "success.contrastText",
+  },
+  failed: {
+    label: "failed",
+    bgcolor: "error.main",
+    color: "error.contrastText",
+  },
+  other: {
+    label: "unknown",
+    bgcolor: "grey.600",
+    color: "common.white",
+  },
+};
+
+function StatusChip({ status }: { status: string }) {
+  const normalized = status.toLowerCase();
+  let key: StatusKey = "other";
+
+  if (normalized === "running" || normalized === "completed" || normalized === "failed") {
+    key = normalized;
+  }
+
+  const config = STATUS_STYLES[key];
+
+  return (
+    <Chip
+      label={key === "other" ? status : config.label}
+      size="small"
+      sx={{
+        px: 1.5,
+        fontWeight: 600,
+        textTransform: "capitalize",
+        bgcolor: config.bgcolor,
+        color: config.color,
+      }}
+    />
+  );
+}
 
 export default function JobsPage() {
   const { auth } = useAuth();
@@ -68,13 +119,15 @@ export default function JobsPage() {
           <TableBody>
             {jobsQuery.data && jobsQuery.data.length > 0 ? (
               jobsQuery.data.map((job) => (
-                <TableRow key={job.id} hover>
-                  <TableCell>{job.id}</TableCell>
-                  <TableCell>{job.nodeId}</TableCell>
-                  <TableCell sx={{ textTransform: "capitalize" }}>{job.status}</TableCell>
-                  <TableCell>{job.startedAt ? job.startedAt.toLocaleString() : "-"}</TableCell>
-                  <TableCell>{job.finishedAt ? job.finishedAt.toLocaleString() : "-"}</TableCell>
-                  <TableCell>{job.durationHours ? job.durationHours.toFixed(2) : "-"}</TableCell>
+                  <TableRow key={job.id} hover>
+                    <TableCell>{job.id}</TableCell>
+                    <TableCell>{job.nodeId}</TableCell>
+                    <TableCell>
+                      <StatusChip status={job.status} />
+                    </TableCell>
+                    <TableCell>{job.startedAt ? job.startedAt.toLocaleString() : "-"}</TableCell>
+                    <TableCell>{job.finishedAt ? job.finishedAt.toLocaleString() : "-"}</TableCell>
+                    <TableCell>{job.durationHours ? job.durationHours.toFixed(2) : "-"}</TableCell>
                   <TableCell>{job.tag ?? "-"}</TableCell>
                 </TableRow>
               ))
