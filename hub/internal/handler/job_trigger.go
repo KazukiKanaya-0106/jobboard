@@ -2,12 +2,14 @@ package handler
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/kanaya/jobboard-hub/internal/apierror"
 	"github.com/kanaya/jobboard-hub/internal/database/repo"
 )
 
@@ -42,7 +44,7 @@ type JobTriggerResponse struct {
 func (h *JobTriggerHandler) StartJob(c *gin.Context) {
 	var req startJobRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		apierror.Write(c, apierror.InvalidRequest)
 		return
 	}
 
@@ -52,7 +54,7 @@ func (h *JobTriggerHandler) StartJob(c *gin.Context) {
 	}
 
 	if node.CurrentJobID != nil {
-		c.JSON(http.StatusConflict, gin.H{"error": "job already running"})
+		apierror.Write(c, apierror.JobAlreadyRunning)
 		return
 	}
 
@@ -69,7 +71,8 @@ func (h *JobTriggerHandler) StartJob(c *gin.Context) {
 		Tag:       req.Tag,
 	})
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create job"})
+		log.Printf("failed to create job: %v", err)
+		apierror.Write(c, apierror.Internal)
 		return
 	}
 
@@ -78,7 +81,8 @@ func (h *JobTriggerHandler) StartJob(c *gin.Context) {
 		CurrentJobID: &job.ID,
 	})
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update node state"})
+		log.Printf("failed to update node state: %v", err)
+		apierror.Write(c, apierror.Internal)
 		return
 	}
 
@@ -88,7 +92,7 @@ func (h *JobTriggerHandler) StartJob(c *gin.Context) {
 func (h *JobTriggerHandler) FinishJob(c *gin.Context) {
 	var req finishJobRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		apierror.Write(c, apierror.InvalidRequest)
 		return
 	}
 
@@ -98,7 +102,7 @@ func (h *JobTriggerHandler) FinishJob(c *gin.Context) {
 	}
 
 	if node.CurrentJobID == nil {
-		c.JSON(http.StatusConflict, gin.H{"error": "no job running"})
+		apierror.Write(c, apierror.JobNotRunning)
 		return
 	}
 
@@ -128,7 +132,8 @@ func (h *JobTriggerHandler) FinishJob(c *gin.Context) {
 		ErrorText:     req.ErrorText,
 	})
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update job"})
+		log.Printf("failed to update job: %v", err)
+		apierror.Write(c, apierror.Internal)
 		return
 	}
 
@@ -137,7 +142,8 @@ func (h *JobTriggerHandler) FinishJob(c *gin.Context) {
 		CurrentJobID: nil,
 	})
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to reset node state"})
+		log.Printf("failed to reset node state: %v", err)
+		apierror.Write(c, apierror.Internal)
 		return
 	}
 
@@ -148,10 +154,11 @@ func (h *JobTriggerHandler) getNodeByNodeToken(c *gin.Context, secret string) (r
 	node, err := h.queries.GetNodeByNodeTokenHash(c.Request.Context(), hashNodeToken(secret))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "node not found"})
+			apierror.Write(c, apierror.NodeNotFound)
 			return repo.Node{}, false
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load node"})
+		log.Printf("failed to load node: %v", err)
+		apierror.Write(c, apierror.Internal)
 		return repo.Node{}, false
 	}
 	return node, true

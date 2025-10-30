@@ -6,6 +6,7 @@ import { login } from "../api";
 import type { AuthCredentials } from "../schemas";
 import { useAuth } from "../AuthContext";
 import { FORCED_LOGOUT_MESSAGE_KEY } from "../../../lib/apiCient";
+import { resolveErrorMessage } from "../../../lib/errorCatalog";
 
 type LocationState = {
   from?: {
@@ -29,7 +30,7 @@ export default function LoginPage() {
       navigate(redirectTo, { replace: true });
     },
     onError: (error: unknown) => {
-      setApiError(error instanceof Error ? error.message : "ログインに失敗しました");
+      setApiError(resolveErrorMessage(error, "ログインに失敗しました"));
     },
   });
 

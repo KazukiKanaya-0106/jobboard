@@ -1,11 +1,11 @@
 package middleware
 
 import (
-	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/kanaya/jobboard-hub/internal/apierror"
 	"github.com/kanaya/jobboard-hub/internal/database/repo"
 )
 
@@ -31,7 +31,7 @@ func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenString, ok := extractBearerToken(c.GetHeader("Authorization"))
 		if !ok {
-			abortUnauthorized(c, "missing or invalid authorization header")
+			apierror.Write(c, apierror.AuthMissingToken)
 			return
 		}
 
@@ -43,7 +43,7 @@ func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 			return m.jwtSecret, nil
 		})
 		if err != nil || !token.Valid {
-			abortUnauthorized(c, "invalid token")
+			apierror.Write(c, apierror.AuthInvalidToken)
 			return
 		}
 
@@ -58,8 +58,4 @@ func extractBearerToken(authHeader string) (string, bool) {
 		return "", false
 	}
 	return strings.TrimPrefix(authHeader, prefix), true
-}
-
-func abortUnauthorized(c *gin.Context, message string) {
-	c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": message})
 }

@@ -5,11 +5,13 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/kanaya/jobboard-hub/internal/apierror"
 	"github.com/kanaya/jobboard-hub/internal/database/repo"
 	"github.com/kanaya/jobboard-hub/internal/middleware"
 )
@@ -49,7 +51,8 @@ func (h *NodeHandler) List(c *gin.Context) {
 	clusterID := c.GetString(middleware.ClusterIDContextKey)
 	nodes, err := h.queries.ListNodesByCluster(c.Request.Context(), clusterID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list nodes"})
+		log.Printf("failed to list nodes: %v", err)
+		apierror.Write(c, apierror.Internal)
 		return
 	}
 	resp := make([]nodeResponse, 0, len(nodes))
@@ -71,14 +74,15 @@ type createNodeResponse struct {
 func (h *NodeHandler) Create(c *gin.Context) {
 	var req createNodeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		apierror.Write(c, apierror.InvalidRequest)
 		return
 	}
 
 	clusterID := c.GetString(middleware.ClusterIDContextKey)
 	nodeToken, err := generateNodeToken()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate node token"})
+		log.Printf("failed to generate node token: %v", err)
+		apierror.Write(c, apierror.Internal)
 		return
 	}
 
@@ -88,7 +92,8 @@ func (h *NodeHandler) Create(c *gin.Context) {
 		NodeTokenHash: hashNodeToken(nodeToken),
 	})
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create node"})
+		log.Printf("failed to create node: %v", err)
+		apierror.Write(c, apierror.Internal)
 		return
 	}
 
@@ -102,7 +107,7 @@ func (h *NodeHandler) Delete(c *gin.Context) {
 	clusterID := c.GetString(middleware.ClusterIDContextKey)
 	nodeID, err := strconv.ParseInt(c.Param("node_id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid node id"})
+		apierror.Write(c, apierror.InvalidRequest)
 		return
 	}
 
@@ -112,12 +117,13 @@ func (h *NodeHandler) Delete(c *gin.Context) {
 	})
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete node"})
+		log.Printf("failed to delete node: %v", err)
+		apierror.Write(c, apierror.Internal)
 		return
 	}
 
 	if rows == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"error": "node not found"})
+		apierror.Write(c, apierror.NodeNotFound)
 		return
 	}
 

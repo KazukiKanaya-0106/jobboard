@@ -5,6 +5,7 @@ import AuthForm from "../components/AuthForm";
 import { register } from "../api";
 import type { AuthCredentials } from "../schemas";
 import { useAuth } from "../AuthContext";
+import { resolveErrorMessage } from "../../../lib/errorCatalog";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ export default function RegisterPage() {
       navigate("/", { replace: true });
     },
     onError: (error: unknown) => {
-      setApiError(error instanceof Error ? error.message : "登録に失敗しました");
+      setApiError(resolveErrorMessage(error, "登録に失敗しました"));
     },
   });
 

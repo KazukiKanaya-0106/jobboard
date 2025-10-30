@@ -1,10 +1,12 @@
 package handler
 
 import (
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/kanaya/jobboard-hub/internal/apierror"
 	"github.com/kanaya/jobboard-hub/internal/database/repo"
 	"github.com/kanaya/jobboard-hub/internal/middleware"
 )
@@ -28,7 +30,8 @@ func (h *ClusterHandler) Me(c *gin.Context) {
 	clusterID := c.GetString(middleware.ClusterIDContextKey)
 	cluster, err := h.queries.GetCluster(c.Request.Context(), clusterID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load cluster"})
+		log.Printf("failed to load cluster: %v", err)
+		apierror.Write(c, apierror.Internal)
 		return
 	}
 

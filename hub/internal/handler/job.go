@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -9,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/kanaya/jobboard-hub/internal/apierror"
 	"github.com/kanaya/jobboard-hub/internal/database/repo"
 	"github.com/kanaya/jobboard-hub/internal/middleware"
 )
@@ -40,7 +42,8 @@ func (h *JobHandler) List(c *gin.Context) {
 
 	jobs, err := h.queries.ListJobsByCluster(c.Request.Context(), clusterID)
 	if err != nil {
-		c.JSON(500, gin.H{"error": "failed to list jobs"})
+		log.Printf("failed to list jobs: %v", err)
+		apierror.Write(c, apierror.Internal)
 		return
 	}
 
@@ -56,7 +59,7 @@ func (h *JobHandler) Get(c *gin.Context) {
 	clusterID := c.GetString(middleware.ClusterIDContextKey)
 	jobID, err := strconv.ParseInt(c.Param("job_id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid job id"})
+		apierror.Write(c, apierror.InvalidRequest)
 		return
 	}
 
@@ -66,10 +69,11 @@ func (h *JobHandler) Get(c *gin.Context) {
 	})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "job not found"})
+			apierror.Write(c, apierror.JobNotFound)
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load job"})
+		log.Printf("failed to load job: %v", err)
+		apierror.Write(c, apierror.Internal)
 		return
 	}
 
@@ -80,13 +84,14 @@ func (h *JobHandler) ListByNode(c *gin.Context) {
 	clusterID := c.GetString(middleware.ClusterIDContextKey)
 	nodeID, err := strconv.ParseInt(c.Param("node_id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid node id"})
+		apierror.Write(c, apierror.InvalidRequest)
 		return
 	}
 
 	nodes, err := h.queries.ListNodesByCluster(c.Request.Context(), clusterID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load nodes"})
+		log.Printf("failed to load nodes: %v", err)
+		apierror.Write(c, apierror.Internal)
 		return
 	}
 
@@ -99,13 +104,14 @@ func (h *JobHandler) ListByNode(c *gin.Context) {
 	}
 
 	if !owned {
-		c.JSON(http.StatusNotFound, gin.H{"error": "node not found"})
+		apierror.Write(c, apierror.NodeNotFound)
 		return
 	}
 
 	jobs, err := h.queries.ListJobsByNode(c.Request.Context(), nodeID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list jobs"})
+		log.Printf("failed to list jobs: %v", err)
+		apierror.Write(c, apierror.Internal)
 		return
 	}
 

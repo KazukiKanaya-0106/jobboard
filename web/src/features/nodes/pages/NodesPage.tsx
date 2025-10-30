@@ -26,6 +26,7 @@ import NodeDeleteDialog from "../components/NodeDeleteDialog";
 import NodeTokenDialog from "../components/NodeTokenDialog";
 import { createNode, deleteNode, fetchNodes, type Node } from "../api";
 import type { CreateNodeRequest } from "../schemas";
+import { resolveErrorMessage } from "../../../lib/errorCatalog";
 
 export default function NodesPage() {
   const { auth } = useAuth();
@@ -59,7 +60,7 @@ export default function NodesPage() {
       queryClient.invalidateQueries({ queryKey: ["nodes"] });
     },
     onError: (error: unknown) => {
-      setCreateError(error instanceof Error ? error.message : "ノードの作成に失敗しました");
+      setCreateError(resolveErrorMessage(error, "ノードの作成に失敗しました"));
     },
   });
 
@@ -70,7 +71,7 @@ export default function NodesPage() {
       setNodeToDelete(null);
     },
     onError: (error: unknown) => {
-      setDeleteError(error instanceof Error ? error.message : "ノードの削除に失敗しました");
+      setDeleteError(resolveErrorMessage(error, "ノードの削除に失敗しました"));
     },
   });
 

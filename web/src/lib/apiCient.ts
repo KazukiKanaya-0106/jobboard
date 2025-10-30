@@ -5,11 +5,13 @@ export const FORCED_LOGOUT_MESSAGE_KEY = "jobboard:forced-logout-message";
 
 export class ApiError extends Error {
   status?: number;
+  code?: string;
 
-  constructor(message: string, status?: number) {
+  constructor(message: string, status?: number, code?: string) {
     super(message);
     this.name = "ApiError";
     this.status = status;
+    this.code = code;
     Object.setPrototypeOf(this, new.target.prototype);
   }
 }
@@ -60,17 +62,32 @@ export async function apiRequest<TResponse = unknown, TBody = unknown>(
   }
 
   if (!response.ok) {
-    let extractedError: unknown;
+    let errorCode: string | undefined;
+    let extractedMessage: string | undefined;
+
     if (data && typeof data === "object" && "error" in data) {
-      extractedError = (data as { error?: unknown }).error;
+      const raw = (data as { error?: unknown }).error;
+      if (raw && typeof raw === "object") {
+        const errorObj = raw as { code?: unknown; message?: unknown; detail?: unknown };
+        if (typeof errorObj.code === "string") {
+          errorCode = errorObj.code;
+        }
+        if (typeof errorObj.message === "string" && errorObj.message.trim() !== "") {
+          extractedMessage = errorObj.message;
+        } else if (typeof errorObj.detail === "string" && errorObj.detail.trim() !== "") {
+          extractedMessage = errorObj.detail;
+        }
+      } else if (typeof raw === "string" && raw.trim() !== "") {
+        extractedMessage = raw;
+      }
     }
 
     const errorMessage =
-      (typeof extractedError === "string" && extractedError.trim() !== "" ? extractedError : null) ??
+      extractedMessage ??
       (response.statusText && response.statusText.trim() !== "" ? response.statusText : null) ??
       "API request failed";
 
-    const error = new ApiError(errorMessage, response.status);
+    const error = new ApiError(errorMessage, response.status, errorCode);
 
     if (error.status === 401) {
       const message = error.message || "セッションの有効期限が切れました。再ログインしてください。";
