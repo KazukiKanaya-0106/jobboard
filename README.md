@@ -261,7 +261,3 @@ TIMEZONE=Asia/Tokyo
 ## ライセンス
 MIT License
 
----
-
-Go × React × Slack Integration でサクッとジョブ監視。  
-改善案やフィードバックがあればお気軽にどうぞ！
