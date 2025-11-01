@@ -127,7 +127,7 @@ docker compose up --build
 4. **ジョブ結果を確認**  
    テーブルで `ID:1` が成功、`ID:2` が失敗になり、失敗行をクリックするとエラー詳細モーダルで原因を確認できます。
 5. **Slack 通知を受け取る**  
-   Slack Webhook を設定していれば、成功・失敗がそれぞれ通知されます（例: `assets/image_4.png`）。
+   Slack Webhook を設定していれば、成功・失敗がそれぞれ通知されます。
 <p align="center">
   <img src="assets/image_0.png" alt="Cluster Creation" width="720" />
 </p>
