@@ -103,16 +103,16 @@ export default function AuthLayout() {
                   Jobboard Hub
                 </Typography>
                 <Typography variant="h6" sx={{ opacity: 0.9, lineHeight: 1.6 }}>
-                  ノードの状況とジョブの進行を一つの画面で。
+                  機械学習などの長時間タスクを、一つの画面で効率的に管理。
                   <br />
-                  運用をスムーズにつなぐハブを体験してください。
+                  複数サーバーの進行をリアルタイムで見える化します。
                 </Typography>
               </Box>
               <Stack spacing={2.8}>
                 {[
-                  "リアルタイムなノードモニタリング",
-                  "ジョブ進捗と履歴の可視化",
-                  "トークンベースのセキュアなアクセス",
+                  "サーバーの稼働状況をリアルタイムに監視",
+                  "長時間ジョブの進行と履歴を見える化",
+                  "トークン認証による安全なアクセス管理",
                 ].map((item) => (
                   <Stack key={item} direction="row" spacing={2.4} alignItems="center">
                     <Box

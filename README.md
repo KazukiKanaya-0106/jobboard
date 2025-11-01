@@ -79,7 +79,7 @@ Hub コンテナは起動時に `go run ./cmd/migrate --cmd up` を実行し、�
 ## クイックスタート
 ### 必要要件
 - Docker / Docker Compose v2
-- (任意) Node.js 20+（Web を単体起動する場合）
+- (任意) Node.js 22+（Web を単体起動する場合）
 
 ### 1. リポジトリの準備
 ```bash
