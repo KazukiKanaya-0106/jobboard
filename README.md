@@ -79,7 +79,7 @@ Hub コンテナは起動時に `go run ./cmd/migrate --cmd up` を実行し、�
 ## クイックスタート
 ### 必要要件
 - Docker / Docker Compose v2
-- (任意) Node.js 18+（Web を単体起動する場合）
+- (任意) Node.js 20+（Web を単体起動する場合）
 
 ### 1. リポジトリの準備
 ```bash
@@ -194,8 +194,6 @@ CLI は実行コマンドの stdout/stderr をそのまま出力しつつ、Hub 
 - **Slack 通知**  
   Hub 連携の有無に関わらず、 CLI が Slack Webhook を持っていれば成功/失敗のサマリを投稿。
 
-> UI の動きがわかるキャプチャを用意できる場合は `README` に追記してください。
-
 ---
 
 ## データベース設計
@@ -217,31 +215,55 @@ CLI は実行コマンドの stdout/stderr をそのまま出力しつつ、Hub 
 ## 環境変数と設定
 ### ルート (`.env`)
 ```dotenv
-# DB
+# ============================================
+# Database Configuration
+# ============================================
 POSTGRES_USER=your_user
 POSTGRES_PASSWORD=your_password
-POSTGRES_DB=jobboard
+POSTGRES_DB=your_database
 DB_HOST=db
 DB_PORT=5432
 
-# アプリ全体
-PORT=8080
-AUTH_JWT_SECRET=dev-secret-change-me
-AUTH_TOKEN_TTL=15m
-TIMEZONE=Asia/Tokyo
-```
+# DBマイグレーションを自動実行するか
+RUN_MIGRATIONS=true
 
-### Hub (`hub/.env`)
-```dotenv
-PORT=8080
-DB_HOST=db
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=postgres
-DB_NAME=jobboard
+# ============================================
+# General Settings
+# ============================================
+# タイムゾーン設定
+TZ=Asia/Tokyo
+
+
+# ============================================
+# Hub Server
+# ============================================
+# Hub(APIサーバー) のポート番号
+HUB_PORT=8080
+
+# 許可するオリジン（CORS設定）
+# フロントエンドのURLをカンマ区切りで指定
+HUB_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+
+# Gin モード: "debug" または "release"
+GIN_MODE=debug
+
+# ============================================
+# Authentication
+# ============================================
+# JWTシークレットキー（本番ではSecrets Managerなどで管理）
 AUTH_JWT_SECRET=dev-secret-change-me
+
+# トークンの有効期限（例: 15m, 1h, 24h）
 AUTH_TOKEN_TTL=15m
-TIMEZONE=Asia/Tokyo
+
+# ============================================
+# Web Frontend
+# ============================================
+# フロントエンド(React/Vite) のポート番号
+WEB_PORT=5173
+
+# フロントエンドからAPIを呼び出すためのエンドポイント
+VITE_API_BASE_URL=http://localhost:8080
 ```
 
 ### CLI (`cli/.env`)

@@ -13,7 +13,8 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Port string
+	Port           string
+	AllowedOrigins string
 }
 
 type DatabaseConfig struct {
@@ -34,7 +35,8 @@ func Load() *Config {
 
 	return &Config{
 		Server: ServerConfig{
-			Port: getEnv("PORT", "8080"),
+			Port:           getEnv("PORT", "8080"),
+			AllowedOrigins: getEnv("ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"),
 		},
 		Database: DatabaseConfig{
 			Host:     getEnv("DB_HOST", "localhost"),

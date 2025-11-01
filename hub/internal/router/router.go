@@ -2,6 +2,7 @@ package router
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -12,15 +13,12 @@ import (
 	"github.com/kanaya/jobboard-hub/internal/middleware"
 )
 
-func New(ctx context.Context, db *database.Database, jwtSecret []byte, tokenTTL time.Duration) *gin.Engine {
+func New(ctx context.Context, db *database.Database, allowedOrigins string, jwtSecret []byte, tokenTTL time.Duration) *gin.Engine {
 	router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery())
 
 	router.Use(cors.New(cors.Config{
-		AllowOrigins: []string{
-			"http://localhost:5173",
-			"http://127.0.0.1:5173",
-		},
+		AllowOrigins: strings.Split(allowedOrigins, ","),
 		AllowMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders: []string{
 			"Origin", "Content-Type", "Accept",
