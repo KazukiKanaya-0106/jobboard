@@ -68,7 +68,7 @@ func (app *App) Run(ctx context.Context) (exitCode int) {
 				defer cancel()
 			}
 			if err := app.hub.Finish(finishCtx, status, finishedAt, duration, hubErrorText); err != nil {
-				fmt.Fprintf(os.Stderr, "warning: failed to notify Hub finish: %v\n", err)
+				fmt.Fprintf(os.Stdout, "[jobboard] warning: failed to notify Hub finish: %v\n", err)
 			}
 		}
 
@@ -92,7 +92,7 @@ func (app *App) Run(ctx context.Context) (exitCode int) {
 			}
 
 			if err := app.slack.Notify(slackCtx, payload); err != nil {
-				fmt.Fprintf(os.Stderr, "warning: failed to send Slack notification: %v\n", err)
+				fmt.Fprintf(os.Stdout, "[jobboard] warning: failed to send Slack notification: %v\n", err)
 			}
 		}
 
@@ -103,7 +103,7 @@ func (app *App) Run(ctx context.Context) (exitCode int) {
 
 	if app.config.Hub.Enabled() {
 		if err := app.hub.Start(ctx, startedAt); err != nil {
-			fmt.Fprintf(os.Stderr, "warning: failed to notify Hub start: %v\n", err)
+			fmt.Fprintf(os.Stdout, "[jobboard] warning: failed to notify Hub start: %v\n", err)
 		} else {
 			hubStarted = true
 		}
@@ -111,7 +111,7 @@ func (app *App) Run(ctx context.Context) (exitCode int) {
 
 	res, runErr := app.runner.Run(ctx, app.config.Execution.Command)
 	if runErr != nil && res == nil {
-		fmt.Fprintf(os.Stderr, "error: failed to execute command: %v\n", runErr)
+		fmt.Fprintf(os.Stderr, "[jobboard] error: failed to execute command: %v\n", runErr)
 		res = &runner.Result{ExitCode: 1, Error: runErr}
 	}
 	if res == nil {

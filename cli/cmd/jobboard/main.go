@@ -19,16 +19,16 @@ import (
 
 func main() {
 	if err := godotenv.Load(); err != nil && !errors.Is(err, os.ErrNotExist) {
-		fmt.Fprintf(os.Stderr, "warning: failed to load .env: %v\n", err)
+		fmt.Fprintf(os.Stdout, "[jobboard] warning: failed to load .env: %v\n", err)
 	}
 	config, warnings, err := config.Load(os.Args[1:])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		fmt.Fprintf(os.Stderr, "[jobboard] error: %v\n", err)
 		os.Exit(1)
 	}
 
 	for _, warning := range warnings {
-		fmt.Fprintf(os.Stderr, "warning: %s\n", warning)
+		fmt.Fprintf(os.Stdout, "[jobboard] warning: %s\n", warning)
 	}
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)

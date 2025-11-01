@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -29,9 +30,10 @@ func (r *Runner) Run(ctx context.Context, command []string) (*Result, error) {
 	cmd := exec.CommandContext(ctx, command[0], command[1:]...)
 	cmd.Env = os.Environ()
 	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
 
 	var stderrBuf bytes.Buffer
-	cmd.Stdout = io.MultiWriter(os.Stderr, &stderrBuf)
+	cmd.Stderr = io.MultiWriter(os.Stderr, &stderrBuf)
 
 	err := cmd.Run()
 
@@ -44,7 +46,7 @@ func (r *Runner) Run(ctx context.Context, command []string) (*Result, error) {
 		var exitErr *exec.ExitError
 		if errors.As(err, &exitErr) {
 			result.ExitCode = exitErr.ExitCode()
-			result.Error = err
+			result.Error = fmt.Errorf("%v\n\n%s", err, stderrBuf.String())
 			return result, nil
 		}
 		result.ExitCode = 1
