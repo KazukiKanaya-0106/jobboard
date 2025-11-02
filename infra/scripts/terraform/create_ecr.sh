@@ -1,22 +1,24 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/lib.sh"
+THIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "${THIS_DIR}/../.." && pwd)"
+
+source "${THIS_DIR}/../lib.sh"
 
 load_env_file "${ENV_FILE:-}"
 require_env_vars AWS_REGION AWS_PROFILE APP_NAME STAGE
 ensure_command terraform
 
-TF_DIR="${TF_DIR:-${SCRIPT_DIR}/..}"
-TF_VARS_FILE="${TF_VARS_FILE:-${SCRIPT_DIR}/../env/prod.tfvars}"
+TF_DIR="${TF_DIR:-${ROOT_DIR}}"
+TF_VARS_FILE="${TF_VARS_FILE:-${ROOT_DIR}/env/prod/terraform.tfvars}"
 
 terraform -chdir="$TF_DIR" init -input=false
 
 apply_args=(
   -input=false
   -auto-approve
-  -target=aws_ecr_repository.hub
+  -target=module.ecr.aws_ecr_repository.this
 )
 
 if [[ -f "$TF_VARS_FILE" ]]; then

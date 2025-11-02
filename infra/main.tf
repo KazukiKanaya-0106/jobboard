@@ -1,16 +1,10 @@
 data "aws_caller_identity" "current" {}
 
-output "whoami" {
-  value = {
-    account_id = data.aws_caller_identity.current.account_id
-    arn        = data.aws_caller_identity.current.arn
-    user_id    = data.aws_caller_identity.current.user_id
-  }
-}
+module "ecr" {
+  source = "./modules/ecr"
 
-output "hub_repository" {
-  value = {
-    name = aws_ecr_repository.hub.name
-    url  = aws_ecr_repository.hub.repository_url
-  }
+  app_name                 = var.app_name
+  stage                    = var.stage
+  repository_name_override = var.ecr_repository_name
+  additional_tags          = local.additional_tags
 }

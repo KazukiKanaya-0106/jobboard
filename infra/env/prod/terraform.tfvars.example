@@ -1,0 +1,4 @@
+region      = "ap-northeast-1"
+aws_profile = "dev-sso"
+app_name    = "jobboard"
+stage       = "prod"
