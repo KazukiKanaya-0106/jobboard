@@ -29,7 +29,7 @@ func New(ctx context.Context, db *database.Database, allowedOrigins string, jwtS
 
 	queries := repo.New(db.Pool)
 
-	healthHandler := handler.NewHealthHandler(ctx, db)
+	healthHandler := handler.NewHealthHandler(ctx)
 	authHandler := handler.NewAuthHandler(queries, jwtSecret, tokenTTL)
 	authMiddleware := middleware.NewAuthMiddleware(queries, jwtSecret)
 
