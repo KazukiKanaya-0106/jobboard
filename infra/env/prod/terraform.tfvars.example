@@ -2,3 +2,14 @@ region      = "ap-northeast-1"
 aws_profile = "dev-sso"
 app_name    = "jobboard"
 stage       = "prod"
+
+hosted_zone_id    = "Z000000000000"
+web_domain_name   = "web.example.com"
+api_domain_name   = "api.example.com"
+
+aurora_master_password = "change-me"
+
+api_environment = {
+  TZ        = "Asia/Tokyo"
+  GIN_MODE  = "release"
+}
